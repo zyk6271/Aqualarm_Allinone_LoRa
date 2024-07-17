@@ -35,8 +35,8 @@
 /*
  * KEY
  */
-#define KEY_ON_PIN                      12
-#define KEY_OFF_PIN                     11
+#define KEY_ON_PIN                      11
+#define KEY_OFF_PIN                     12
 
 /*
  * BUZZER
