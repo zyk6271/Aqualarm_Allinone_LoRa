@@ -87,11 +87,15 @@ void gateway_warning_master_low_temp(uint8_t value)
 
 void gateway_warning_slaver_offline(void)
 {
-    uint32_t length = 0;
     tx_format tx_frame = {0};
-    uint8_t *send_buf = rt_malloc(255);
 
-    length = aq_device_offline_upload(&send_buf[2]);
+    uint8_t *send_buf = rt_malloc(255);
+    if(send_buf == RT_NULL)
+    {
+        return;
+    }
+
+    uint32_t length = aq_device_offline_upload(&send_buf[2]);
 
     send_buf[0] = 5;//slaver heart
     send_buf[1] = length;
@@ -434,7 +438,12 @@ void gateway_sync_device_reset(void)
 void gateway_sync_device_upload(void)
 {
     tx_format tx_frame = {0};
+
     uint8_t *send_buf = rt_malloc(255);
+    if(send_buf == RT_NULL)
+    {
+        return;
+    }
 
     uint32_t length = 0;
     length = aq_device_clone_upload(&send_buf[4]);

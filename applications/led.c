@@ -154,6 +154,8 @@ void wifi_led(uint8_t num)
         led_set_mode(led_obj_wifi_red_led, LOOP_PERMANENT,"200,0,");
         led_start(led_obj_wifi_red_led);
         break;
+    default:
+        break;
     }
 }
 void led_valve_fail(void)

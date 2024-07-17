@@ -124,34 +124,39 @@ void pd_chip_factory_info_set(struct rt_spi_device *device)
 void pd_chip_factory_period_read_callback(void *parameter)
 {
     extern uint8_t antenna_switch_flag;
+    static uint8_t simu_water_leak = 0;
+    static uint8_t simu_valve_check = 0;
+    static uint8_t simu_ant_switch = 0;
+    uint8_t action_data = 0;
+
+    if(factory_chip == RT_NULL)
+    {
+        return;
+    }
 
     pd_chip_factory_info_set(factory_chip->pd_chip_device);
-    uint8_t data = pd_spi_read_single(factory_chip->pd_chip_device,0x09);
-    static uint8_t simu_water_leak;
-    static uint8_t simu_valve_check;
-    static uint8_t simu_ant_switch;
-
-    if(simu_water_leak != data & 0x01)
+    action_data = pd_spi_read_single(factory_chip->pd_chip_device,0x09);
+    if(simu_water_leak != (action_data & 0x01))
     {
-        simu_water_leak = data & 0x01;
+        simu_water_leak = action_data & 0x01;
         if(simu_water_leak)
         {
             factory_water_leak_simulate();
         }
     }
 
-    if(simu_valve_check != data & 0x02)
+    if(simu_valve_check != (action_data & 0x02))
     {
-        simu_valve_check = data & 0x02;
+        simu_valve_check = action_data & 0x02;
         if(simu_valve_check)
         {
             valve_check();
         }
     }
 
-    if(simu_ant_switch != data & 0x04)
+    if(simu_ant_switch != (action_data & 0x04))
     {
-        simu_ant_switch = data & 0x04;
+        simu_ant_switch = action_data & 0x04;
         if(simu_ant_switch)
         {
             radio_antenna_switch(antenna_switch_flag);

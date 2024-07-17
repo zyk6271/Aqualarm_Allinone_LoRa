@@ -196,6 +196,8 @@ static void radio_frame_endunit_parse_warn(rx_format *rx_frame)
     case 1://lost
         gateway_warning_slaver_lost(device->device_id,rx_frame->rx_data[3],device->rssi_level);
         break;
+    default:
+        break;
     }
 }
 
