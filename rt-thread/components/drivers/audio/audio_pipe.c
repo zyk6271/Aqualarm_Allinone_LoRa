@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2023, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -21,7 +21,9 @@ static void _rt_pipe_resume_writer(struct rt_audio_pipe *pipe)
         RT_ASSERT(pipe->flag & RT_PIPE_FLAG_BLOCK_WR);
 
         /* get suspended thread */
-        thread = RT_THREAD_LIST_NODE_ENTRY(pipe->suspended_write_list.next);
+        thread = rt_list_entry(pipe->suspended_write_list.next,
+                               struct rt_thread,
+                               tlist);
 
         /* resume the write thread */
         rt_thread_resume(thread);
@@ -30,7 +32,7 @@ static void _rt_pipe_resume_writer(struct rt_audio_pipe *pipe)
     }
 }
 
-static rt_ssize_t rt_pipe_read(rt_device_t dev,
+static rt_size_t rt_pipe_read(rt_device_t dev,
                               rt_off_t    pos,
                               void       *buffer,
                               rt_size_t   size)
@@ -71,7 +73,7 @@ static rt_ssize_t rt_pipe_read(rt_device_t dev,
             rt_thread_suspend(thread);
             /* waiting on suspended read list */
             rt_list_insert_before(&(pipe->suspended_read_list),
-                                  &RT_THREAD_LIST_NODE(thread));
+                                  &(thread->tlist));
             rt_hw_interrupt_enable(level);
 
             rt_schedule();
@@ -101,7 +103,9 @@ static void _rt_pipe_resume_reader(struct rt_audio_pipe *pipe)
         RT_ASSERT(pipe->flag & RT_PIPE_FLAG_BLOCK_RD);
 
         /* get suspended thread */
-        thread = RT_THREAD_LIST_NODE_ENTRY(pipe->suspended_read_list.next);
+        thread = rt_list_entry(pipe->suspended_read_list.next,
+                               struct rt_thread,
+                               tlist);
 
         /* resume the read thread */
         rt_thread_resume(thread);
@@ -110,7 +114,7 @@ static void _rt_pipe_resume_reader(struct rt_audio_pipe *pipe)
     }
 }
 
-static rt_ssize_t rt_pipe_write(rt_device_t dev,
+static rt_size_t rt_pipe_write(rt_device_t dev,
                                rt_off_t    pos,
                                const void *buffer,
                                rt_size_t   size)
@@ -157,7 +161,7 @@ static rt_ssize_t rt_pipe_write(rt_device_t dev,
             rt_thread_suspend(thread);
             /* waiting on suspended read list */
             rt_list_insert_before(&(pipe->suspended_write_list),
-                                  &RT_THREAD_LIST_NODE(thread));
+                                  &(thread->tlist));
             rt_hw_interrupt_enable(level);
 
             rt_schedule();

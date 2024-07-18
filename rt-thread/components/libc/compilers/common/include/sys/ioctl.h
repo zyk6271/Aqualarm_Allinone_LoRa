@@ -15,10 +15,6 @@
 extern "C" {
 #endif
 
-#ifdef RT_USING_MUSLLIBC
-#include_next <sys/ioctl.h>
-#else
-
 struct winsize
 {
     unsigned short ws_row;
@@ -74,6 +70,10 @@ struct winsize
 
 #ifndef FIOASYNC
 #define FIOASYNC    _IOW('f', 125, int) /* set/clear async i/o */
+#endif
+
+#ifndef FIONWRITE
+#define FIONWRITE   _IOR('f', 121, int) /* get # bytes outstanding in send queue */
 #endif
 
 /* Socket I/O Controls */
@@ -205,12 +205,6 @@ struct winsize
 #define SIOCGPGRP       0x8904
 #define SIOCGSTAMP      0x8906
 #define SIOCGSTAMPNS    0x8907
-
-#endif
-
-#ifndef FIONWRITE
-#define FIONWRITE _IOR('f', 121, int) /* get # bytes outstanding in send queue */
-#endif
 
 #define SIOCADDRT       0x890B
 #define SIOCDELRT       0x890C

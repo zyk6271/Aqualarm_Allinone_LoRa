@@ -55,7 +55,7 @@ extern "C" {
 
 struct stat
 {
-    dev_t st_dev;
+    struct rt_device *st_dev;
     uint16_t  st_ino;
     uint16_t  st_mode;
     uint16_t  st_nlink;

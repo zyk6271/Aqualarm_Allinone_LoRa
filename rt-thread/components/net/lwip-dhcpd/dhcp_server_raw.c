@@ -1,7 +1,7 @@
 /*
  * File      : dhcp_server_raw.c
  *             A simple DHCP server implementation
- * COPYRIGHT (C) 2011-2023, Shanghai Real-Thread Technology Co., Ltd
+ * COPYRIGHT (C) 2011-2018, Shanghai Real-Thread Technology Co., Ltd
  * http://www.rt-thread.com
  * All rights reserved.
  *
@@ -161,7 +161,8 @@ dhcp_client_find_by_mac(struct dhcp_server *dhcpserver, const u8_t *chaddr, u8_t
 * Find a dhcp client node by ip address
 *
 * @param dhcpserver The dhcp server
-* @param ip IP address
+* @param chaddr Mac address
+* @param hlen   Mac address length
 * @return dhcp client node
 */
 static struct dhcp_client_node *
@@ -181,12 +182,11 @@ dhcp_client_find_by_ip(struct dhcp_server *dhcpserver, const ip4_addr_t *ip)
 }
 
 /**
-* Find a dhcp client node by dhcp message
+* Find a dhcp client node by ip address
 *
-* @param dhcpserver is the dhcp server
-* @param msg is the dhcp message
-* @param opt_buf is the optional buffer
-* @param len is the buffer length
+* @param dhcpserver The dhcp server
+* @param chaddr Mac address
+* @param hlen   Mac address length
 * @return dhcp client node
 */
 static struct dhcp_client_node *
@@ -217,12 +217,11 @@ dhcp_client_find(struct dhcp_server *dhcpserver, struct dhcp_msg *msg,
 }
 
 /**
-* Allocate a dhcp client node by dhcp message
+* Find a dhcp client node by ip address
 *
-* @param dhcpserver is the dhcp server
-* @param msg is the dhcp message
-* @param opt_buf is the optional buffer
-* @param len is the buffer length
+* @param dhcpserver The dhcp server
+* @param chaddr Mac address
+* @param hlen   Mac address length
 * @return dhcp client node
 */
 static struct dhcp_client_node *
@@ -605,7 +604,7 @@ free_pbuf_and_return:
 *
 * @param netif The netif which use dhcp server
 * @param start The Start IP address
-* @param end The End IP address
+* @param end The netif which use dhcp server
 * @return lwIP error code
 * - ERR_OK - No error
 * - ERR_MEM - Out of memory

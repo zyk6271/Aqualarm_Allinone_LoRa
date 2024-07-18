@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2023, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -13,11 +13,6 @@
 #include <drivers/usb_host.h>
 
 #define USB_THREAD_STACK_SIZE    4096
-
-#define DBG_TAG    "usb.host.hub"
-#define DBG_LVL     DBG_INFO
-#include <rtdbg.h>
-
 
 // static struct rt_messagequeue *usb_mq;
 static struct uclass_driver hub_driver;
@@ -80,7 +75,7 @@ static rt_err_t root_hub_ctrl(struct uhcd *hcd, rt_uint16_t port, rt_uint8_t cmd
         }
         break;
     default:
-        return -RT_ERROR;
+        return RT_ERROR;
     }
     return RT_EOK;
 }
@@ -405,7 +400,7 @@ static rt_err_t rt_usbh_hub_port_change(uhub_t hub)
         ret = rt_usbh_hub_get_port_status(hub, i + 1, &pstatus);
         if(ret != RT_EOK) continue;
 
-        LOG_D("port %d status 0x%x", i + 1, pstatus);
+        RT_DEBUG_LOG(RT_DEBUG_USB, ("port %d status 0x%x\n", i + 1, pstatus));
 
         /* check port status change */
         if (pstatus & PORT_CCSC)
@@ -476,13 +471,13 @@ static void rt_usbh_hub_irq(void* context)
 
     if(pipe->status != UPIPE_STATUS_OK)
     {
-        LOG_D("hub irq error");
+        RT_DEBUG_LOG(RT_DEBUG_USB,("hub irq error\n"));
         return;
     }
 
     rt_usbh_hub_port_change(hub);
 
-    LOG_D("hub int xfer...");
+    RT_DEBUG_LOG(RT_DEBUG_USB,("hub int xfer...\n"));
 
     /* parameter check */
      RT_ASSERT(pipe->inst->hcd != RT_NULL);
@@ -511,6 +506,8 @@ static rt_err_t rt_usbh_hub_enable(void *arg)
     int timeout = USB_TIMEOUT_LONG;
     /* paremeter check */
     RT_ASSERT(intf != RT_NULL);
+
+    RT_DEBUG_LOG(RT_DEBUG_USB, ("rt_usbh_hub_run\n"));
 
     /* get usb device instance */
     device = intf->device;
@@ -579,7 +576,7 @@ static rt_err_t rt_usbh_hub_enable(void *arg)
             pipe_in = rt_usb_instance_find_pipe(device,ep_desc->bEndpointAddress);
             if(pipe_in == RT_NULL)
             {
-                return -RT_ERROR;
+                return RT_ERROR;
             }
             rt_usb_pipe_add_callback(pipe_in,rt_usbh_hub_irq);
         }
@@ -611,7 +608,7 @@ static rt_err_t rt_usbh_hub_disable(void* arg)
     /* paremeter check */
     RT_ASSERT(intf != RT_NULL);
 
-    LOG_D("rt_usbh_hub_stop");
+    RT_DEBUG_LOG(RT_DEBUG_USB, ("rt_usbh_hub_stop\n"));
     hub = (uhub_t)intf->user_data;
 
     for(i=0; i<hub->num_ports; i++)
@@ -657,8 +654,10 @@ static void rt_usbh_hub_thread_entry(void* parameter)
         struct uhost_msg msg;
 
         /* receive message */
-        if (rt_mq_recv(hcd->usb_mq, &msg, sizeof(struct uhost_msg), RT_WAITING_FOREVER) < 0)
-            continue;
+        if(rt_mq_recv(hcd->usb_mq, &msg, sizeof(struct uhost_msg), RT_WAITING_FOREVER)
+            != RT_EOK ) continue;
+
+        //RT_DEBUG_LOG(RT_DEBUG_USB, ("msg type %d\n", msg.type));
 
         switch (msg.type)
         {
@@ -703,11 +702,6 @@ void rt_usbh_hub_init(uhcd_t hcd)
     rt_thread_t thread;
     /* create root hub for hcd */
     hcd->roothub = rt_malloc(sizeof(struct uhub));
-    if(hcd->roothub == RT_NULL)
-    {
-        LOG_E("hcd->roothub: allocate buffer failed.");
-        return;
-    }
     rt_memset(hcd->roothub, 0, sizeof(struct uhub));
     hcd->roothub->is_roothub = RT_TRUE;
     hcd->roothub->hcd = hcd;

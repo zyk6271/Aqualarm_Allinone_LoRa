@@ -130,7 +130,7 @@
 /** @defgroup AGILE_BUTTON_Private_Variables Agile Button Private Variables
  * @{
  */
-rt_align(RT_ALIGN_SIZE)
+ALIGN(RT_ALIGN_SIZE)
 static rt_slist_t _slist_head = RT_SLIST_OBJECT_INIT(_slist_head); /**< Agile Button 链表头节点 */
 static struct rt_mutex _mtx;                                       /**< Agile Button 互斥锁 */
 static uint8_t _is_init = 0;                                       /**< Agile Button 初始化完成标志 */

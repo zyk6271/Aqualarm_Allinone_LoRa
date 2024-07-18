@@ -10,14 +10,22 @@
 #ifndef __MQUEUE_H__
 #define __MQUEUE_H__
 
-#include <rtthread.h>
 #include <sys/signal.h>
+#include <sys/time.h>
+#include <rtdef.h>
 
-#ifdef RT_USING_DFS_MQUEUE
-#include "dfs_mqueue.h"
-#endif
+struct mqdes
+{
+    /* reference count and unlinked */
+    rt_uint16_t refcount;
+    rt_uint16_t unlinked;
 
-typedef int mqd_t;
+    /* RT-Thread message queue */
+    rt_mq_t mq;
+    /* next posix mqueue */
+    struct mqdes* next;
+};
+typedef struct mqdes* mqd_t;
 
 struct mq_attr
 {

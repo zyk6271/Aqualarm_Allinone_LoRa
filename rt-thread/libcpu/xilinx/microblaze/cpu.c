@@ -10,3 +10,22 @@
 
 #include <rtthread.h>
 
+/**
+ * this function will reset CPU
+ *
+ */
+RT_WEAK void rt_hw_cpu_reset()
+{
+}
+
+/**
+ * this function will shutdown CPU
+ *
+ */
+RT_WEAK void rt_hw_cpu_shutdown()
+{
+    rt_kprintf("shutdown...\n");
+
+    while (1);
+}
+

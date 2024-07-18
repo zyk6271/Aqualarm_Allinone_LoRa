@@ -16,7 +16,6 @@ class XmakeProject:
         self.env = env
         self.project = project
         self.sdkdir = ""
-        self.bindir = ""
         self.toolchain = ""
         self.src_path = ""
         self.inc_path = ""
@@ -27,8 +26,7 @@ class XmakeProject:
         self.define = ""
 
     def set_toolchain_path(self):
-        self.bindir = os.path.abspath(rtconfig.EXEC_PATH).replace('\\', "/")
-        self.sdkdir = self.bindir[:-4]
+        self.sdkdir = os.path.abspath(rtconfig.EXEC_PATH).replace('\\', "/")
         # delete -
         self.toolchain = rtconfig.PREFIX[:-1]
 
@@ -73,7 +71,7 @@ class XmakeProject:
         with open(template_path, "r") as f:
             data = f.read()
         data = Template(data)
-        data = data.safe_substitute(toolchain=self.toolchain, sdkdir=self.sdkdir, bindir=self.bindir, src_path=self.src_path, inc_path=self.inc_path,
+        data = data.safe_substitute(toolchain=self.toolchain, sdkdir=self.sdkdir, src_path=self.src_path, inc_path=self.inc_path,
                                     define=self.define, cflags=self.cflags, cxxflags=self.cxxflags, asflags=self.asflags,
                                     ldflags=self.ldflags, target="rt-thread")
         with open("xmake.lua", "w") as f:

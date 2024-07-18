@@ -33,7 +33,6 @@
 #define AT_CMD_SEMICOLON               ';'
 #define AT_CMD_CR                      '\r'
 #define AT_CMD_LF                      '\n'
-#define AT_CMD_NULL                    '\0'
 
 static at_server_t at_server_local = RT_NULL;
 static at_cmd_t cmd_table = RT_NULL;
@@ -43,8 +42,8 @@ extern rt_size_t at_utils_send(rt_device_t dev,
                                rt_off_t    pos,
                                const void *buffer,
                                rt_size_t   size);
-extern void at_vprintf(rt_device_t device, char *send_buf, rt_size_t buf_size, const char *format, va_list args);
-extern void at_vprintfln(rt_device_t device, char *send_buf, rt_size_t buf_size, const char *format, va_list args);
+extern void at_vprintf(rt_device_t device, const char *format, va_list args);
+extern void at_vprintfln(rt_device_t device, const char *format, va_list args);
 
 /**
  * AT server send data to AT device
@@ -57,7 +56,7 @@ void at_server_printf(const char *format, ...)
 
     va_start(args, format);
 
-    at_vprintf(at_server_local->device, at_server_local->send_buffer, sizeof(at_server_local->send_buffer), format, args);
+    at_vprintf(at_server_local->device, format, args);
 
     va_end(args);
 }
@@ -73,7 +72,7 @@ void at_server_printfln(const char *format, ...)
 
     va_start(args, format);
 
-    at_vprintfln(at_server_local->device, at_server_local->send_buffer, sizeof(at_server_local->send_buffer), format, args);
+    at_vprintfln(at_server_local->device, format, args);
 
     va_end(args);
 }
@@ -311,59 +310,70 @@ static rt_err_t at_check_args(const char *args, const char *args_format)
     return RT_EOK;
 }
 
-static at_result_t at_cmd_process(at_cmd_t cmd, const char *cmd_args)
+static rt_err_t at_cmd_process(at_cmd_t cmd, const char *cmd_args)
 {
+    at_result_t result = AT_RESULT_OK;
+
     RT_ASSERT(cmd);
     RT_ASSERT(cmd_args);
 
-    /* AT+TEST=? */
-    if (cmd_args[0] == AT_CMD_EQUAL_MARK && cmd_args[1] == AT_CMD_QUESTION_MARK)
+    if (cmd_args[0] == AT_CMD_EQUAL_MARK && cmd_args[1] == AT_CMD_QUESTION_MARK && cmd_args[2] == AT_CMD_CR)
     {
         if (cmd->test == RT_NULL)
         {
-            return AT_RESULT_CMD_ERR;
+            at_server_print_result(AT_RESULT_CMD_ERR);
+            return -RT_ERROR;
         }
 
-        return cmd->test();
+        result = cmd->test();
+        at_server_print_result(result);
     }
-    /* AT+TEST? */
-    else if (cmd_args[0] == AT_CMD_QUESTION_MARK)
+    else if (cmd_args[0] == AT_CMD_QUESTION_MARK && cmd_args[1] == AT_CMD_CR)
     {
         if (cmd->query == RT_NULL)
         {
-            return AT_RESULT_CMD_ERR;
+            at_server_print_result(AT_RESULT_CMD_ERR);
+            return -RT_ERROR;
         }
 
-        return cmd->query();
+        result = cmd->query();
+        at_server_print_result(result);
     }
-    /* AT+TEST=1 or ATE1 */
     else if (cmd_args[0] == AT_CMD_EQUAL_MARK
-            || (cmd_args[0] >= AT_CMD_CHAR_0 && cmd_args[0] <= AT_CMD_CHAR_9 && (cmd_args[1] == AT_CMD_CR || cmd_args[1] == AT_CMD_LF)))
+            || (cmd_args[0] >= AT_CMD_CHAR_0 && cmd_args[0] <= AT_CMD_CHAR_9 && cmd_args[1] == AT_CMD_CR))
     {
         if (cmd->setup == RT_NULL)
         {
-            return AT_RESULT_CMD_ERR;
+            at_server_print_result(AT_RESULT_CMD_ERR);
+            return -RT_ERROR;
         }
 
         if(at_check_args(cmd_args, cmd->args_expr) < 0)
         {
-            return AT_RESULT_CHECK_FAILE;
+            at_server_print_result(AT_RESULT_CHECK_FAILE);
+            return -RT_ERROR;
         }
 
-        return cmd->setup(cmd_args);
+        result = cmd->setup(cmd_args);
+        at_server_print_result(result);
     }
-    /* AT+TEST */
-    else if (cmd_args[0] == AT_CMD_CR || cmd_args[0] == AT_CMD_LF)
+    else if (cmd_args[0] == AT_CMD_CR)
     {
         if (cmd->exec == RT_NULL)
         {
-            return AT_RESULT_CMD_ERR;
+            at_server_print_result(AT_RESULT_CMD_ERR);
+            return -RT_ERROR;
         }
 
-        return cmd->exec();
+        result = cmd->exec();
+        at_server_print_result(result);
+    }
+    else
+    {
+        return -RT_ERROR;
     }
 
-    return AT_RESULT_FAILE;
+    return RT_EOK;
 }
 
 static at_cmd_t at_find_cmd(const char *cmd)
@@ -389,10 +399,10 @@ static rt_err_t at_cmd_get_name(const char *cmd_buffer, char *cmd_name)
     RT_ASSERT(cmd_name);
     RT_ASSERT(cmd_buffer);
 
-    for (i = 0; i < strlen(cmd_buffer) && i < AT_CMD_NAME_LEN; i++)
+    for (i = 0; i < strlen(cmd_buffer) + 1; i++)
     {
         if (*(cmd_buffer + i) == AT_CMD_QUESTION_MARK || *(cmd_buffer + i) == AT_CMD_EQUAL_MARK
-                || *(cmd_buffer + i) == AT_CMD_CR || *(cmd_buffer + i) == AT_CMD_LF
+                || *(cmd_buffer + i) == AT_CMD_CR
                 || (*(cmd_buffer + i) >= AT_CMD_CHAR_0 && *(cmd_buffer + i) <= AT_CMD_CHAR_9))
         {
             cmd_name_len = i;
@@ -432,7 +442,6 @@ static void server_parser(at_server_t server)
     char cur_cmd_name[AT_CMD_NAME_LEN] = { 0 };
     at_cmd_t cur_cmd = RT_NULL;
     char *cur_cmd_args = RT_NULL, ch, last_ch;
-    at_result_t result;
 
     RT_ASSERT(server);
     RT_ASSERT(server->status != AT_STATUS_UNINITIALIZED);
@@ -445,54 +454,62 @@ static void server_parser(at_server_t server)
             break;
         }
 
-        if (ch == BACKSPACE_KEY || ch == DELECT_KEY)
+        if (server->echo_mode)
         {
-            if (server->cur_recv_len)
-                server->cur_recv_len--;
-            if (server->echo_mode)
-                at_server_printf("\b \b");
-        }
-        else if (ch == AT_CMD_LF && last_ch == AT_CMD_CR)
-        {
-            /* skip '\n' if we get "\r\n" */
-        }
-        else
-        {
-            if (server->cur_recv_len < sizeof(server->recv_buffer) - 1)
+            if (ch == AT_CMD_CR || (ch == AT_CMD_LF && last_ch != AT_CMD_CR))
             {
-                server->recv_buffer[server->cur_recv_len++] = ch;
-                if (ch == AT_CMD_CR || ch == AT_CMD_LF)
+                at_server_printf("%c%c", AT_CMD_CR, AT_CMD_LF);
+            }
+            else if (ch == AT_CMD_LF)
+            {
+                // skip the end sign check
+            }
+            else if (ch == BACKSPACE_KEY || ch == DELECT_KEY)
+            {
+                if (server->cur_recv_len)
                 {
-                    if (server->echo_mode)
-                        at_server_printf("%c%c", AT_CMD_CR, AT_CMD_LF);
-                    server->recv_buffer[server->cur_recv_len] = '\0';
-                    result = AT_RESULT_FAILE;
-                    if (at_cmd_get_name(server->recv_buffer, cur_cmd_name) == RT_EOK)
-                    {
-                        cur_cmd = at_find_cmd(cur_cmd_name);
-                        if (cur_cmd)
-                        {
-                            cur_cmd_args = server->recv_buffer + strlen(cur_cmd_name);
-                            result = at_cmd_process(cur_cmd, cur_cmd_args);
-                        }
-                    }
+                    server->recv_buffer[--server->cur_recv_len] = 0;
+                    at_server_printf("\b \b");
+                }
 
-                    at_server_print_result(result);
-                    server->cur_recv_len = 0;
-                }
-                else
-                {
-                    if (server->echo_mode)
-                        at_server_printf("%c", ch);
-                }
-                last_ch = ch;
+                continue;
             }
             else
             {
-                /* server receive buffer overflow!!! */
-                server->cur_recv_len = 0;
+                at_server_printf("%c", ch);
             }
         }
+
+        server->recv_buffer[server->cur_recv_len++] = ch;
+        last_ch = ch;
+
+        if(!strstr(server->recv_buffer, server->end_mark))
+        {
+            continue;
+        }
+
+        if (at_cmd_get_name(server->recv_buffer, cur_cmd_name) < 0)
+        {
+            at_server_print_result(AT_RESULT_CMD_ERR);
+            goto __retry;
+        }
+
+        cur_cmd = at_find_cmd(cur_cmd_name);
+        if (!cur_cmd)
+        {
+            at_server_print_result(AT_RESULT_CMD_ERR);
+            goto __retry;
+        }
+
+        cur_cmd_args = server->recv_buffer + strlen(cur_cmd_name);
+        if (at_cmd_process(cur_cmd, cur_cmd_args) < 0)
+        {
+            goto __retry;
+        }
+
+__retry:
+        rt_memset(server->recv_buffer, 0x00, AT_SERVER_RECV_BUFF_LEN);
+        server->cur_recv_len = 0;
     }
 }
 
@@ -521,7 +538,7 @@ int at_server_init(void)
     }
 
     /* initialize the AT commands table.*/
-#if defined(__ARMCC_VERSION)                                 /* ARM C Compiler */
+#if defined(__CC_ARM)                                 /* ARM C Compiler */
     extern const int RtAtCmdTab$$Base;
     extern const int RtAtCmdTab$$Limit;
     cmd_table = (at_cmd_t)&RtAtCmdTab$$Base;
@@ -564,7 +581,6 @@ int at_server_init(void)
     {
         RT_ASSERT(at_server_local->device->type == RT_Device_Class_Char);
 
-        rt_device_set_rx_indicate(at_server_local->device, at_rx_ind);
         /* using DMA mode first */
         open_result = rt_device_open(at_server_local->device, RT_DEVICE_OFLAG_RDWR | RT_DEVICE_FLAG_DMA_RX);
         /* using interrupt mode when DMA mode not supported */
@@ -573,6 +589,8 @@ int at_server_init(void)
             open_result = rt_device_open(at_server_local->device, RT_DEVICE_OFLAG_RDWR | RT_DEVICE_FLAG_INT_RX);
         }
         RT_ASSERT(open_result == RT_EOK);
+
+        rt_device_set_rx_indicate(at_server_local->device, at_rx_ind);
     }
     else
     {
@@ -582,6 +600,7 @@ int at_server_init(void)
     }
 
     at_server_local->get_char = at_server_getchar;
+    rt_memcpy(at_server_local->end_mark, AT_CMD_END_MARK, sizeof(AT_CMD_END_MARK));
 
     at_server_local->parser_entry = server_parser;
     at_server_local->parser = rt_thread_create("at_svr",
@@ -593,6 +612,7 @@ int at_server_init(void)
     if (at_server_local->parser == RT_NULL)
     {
         result = -RT_ENOMEM;
+        goto __exit;
     }
 
 __exit:
@@ -608,16 +628,7 @@ __exit:
     {
         if (at_server_local)
         {
-            if (at_server_local->rx_notice)
-            {
-                rt_sem_delete(at_server_local->rx_notice);
-            }
-            if (at_server_local->device)
-            {
-                rt_device_close(at_server_local->device);
-            }
             rt_free(at_server_local);
-            at_server_local = RT_NULL;
         }
 
         LOG_E("RT-Thread AT server (V%s) initialize failed(%d).", AT_SW_VERSION, result);
@@ -627,12 +638,12 @@ __exit:
 }
 INIT_COMPONENT_EXPORT(at_server_init);
 
-rt_weak void at_port_reset(void)
+RT_WEAK void at_port_reset(void)
 {
     LOG_E("The reset for AT server is not implement.");
 }
 
-rt_weak void at_port_factory_reset(void)
+RT_WEAK void at_port_factory_reset(void)
 {
     LOG_E("The factory reset for AT server is not implement.");
 }

@@ -30,7 +30,7 @@ rt_spi_flash_device_t w25q16;
 
 uint32_t total_slot = 0;
 
-rt_align(RT_ALIGN_SIZE)
+ALIGN(RT_ALIGN_SIZE)
 static rt_slist_t _device_list = RT_SLIST_OBJECT_INIT(_device_list);
 static struct rt_mutex flash_mutex;
 

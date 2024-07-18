@@ -64,7 +64,7 @@ rt_inline rt_err_t rt_wm_que_inc(struct rt_watermark_queue *wg,
         thread = rt_thread_self();
         thread->error = RT_EOK;
         rt_thread_suspend(thread);
-        rt_list_insert_after(&wg->suspended_threads, &RT_THREAD_LIST_NODE(thread));
+        rt_list_insert_after(&wg->suspended_threads, &thread->tlist);
         if (timeout > 0)
         {
             rt_timer_control(&(thread->thread_timer),
@@ -116,7 +116,9 @@ rt_inline void rt_wm_que_dec(struct rt_watermark_queue *wg)
         {
             rt_thread_t thread;
 
-            thread = RT_THREAD_LIST_NODE_ENTRY(wg->suspended_threads.next);
+            thread = rt_list_entry(wg->suspended_threads.next,
+                                   struct rt_thread,
+                                   tlist);
             rt_thread_resume(thread);
             need_sched = 1;
         }

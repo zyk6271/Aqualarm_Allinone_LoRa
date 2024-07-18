@@ -12,16 +12,17 @@
  * 2021-08-15     Supperthomas fix the comment
  * 2022-01-07     Gabriel      Moving __on_rt_xxxxx_hook to irq.c
  * 2022-07-04     Yunjie       fix RT_DEBUG_LOG
- * 2023-09-15     xqyjlj       perf rt_hw_interrupt_disable/enable
- * 2024-01-05     Shell        Fixup of data racing in rt_interrupt_get_nest
  */
 
 #include <rthw.h>
 #include <rtthread.h>
 
-#define DBG_TAG           "kernel.irq"
-#define DBG_LVL           DBG_INFO
-#include <rtdbg.h>
+#ifndef __on_rt_interrupt_enter_hook
+    #define __on_rt_interrupt_enter_hook()          __ON_HOOK_ARGS(rt_interrupt_enter_hook, ())
+#endif
+#ifndef __on_rt_interrupt_leave_hook
+    #define __on_rt_interrupt_leave_hook()          __ON_HOOK_ARGS(rt_interrupt_leave_hook, ())
+#endif
 
 #if defined(RT_USING_HOOK) && defined(RT_HOOK_USING_FUNC_PTR)
 
@@ -66,7 +67,7 @@ void rt_interrupt_leave_sethook(void (*hook)(void))
 #ifdef RT_USING_SMP
 #define rt_interrupt_nest rt_cpu_self()->irq_nest
 #else
-volatile rt_atomic_t rt_interrupt_nest = 0;
+volatile rt_uint8_t rt_interrupt_nest = 0;
 #endif /* RT_USING_SMP */
 
 
@@ -77,12 +78,17 @@ volatile rt_atomic_t rt_interrupt_nest = 0;
  *
  * @see rt_interrupt_leave
  */
-rt_weak void rt_interrupt_enter(void)
+void rt_interrupt_enter(void)
 {
-    rt_atomic_add(&(rt_interrupt_nest), 1);
+    rt_base_t level;
+
+    level = rt_hw_interrupt_disable();
+    rt_interrupt_nest ++;
     RT_OBJECT_HOOK_CALL(rt_interrupt_enter_hook,());
-    LOG_D("irq has come..., irq current nest:%d",
-          (rt_int32_t)rt_atomic_load(&(rt_interrupt_nest)));
+    rt_hw_interrupt_enable(level);
+
+    RT_DEBUG_LOG(RT_DEBUG_IRQ, ("irq has come..., irq current nest:%d\n",
+                                (rt_int32_t)rt_interrupt_nest));
 }
 RTM_EXPORT(rt_interrupt_enter);
 
@@ -94,13 +100,17 @@ RTM_EXPORT(rt_interrupt_enter);
  *
  * @see rt_interrupt_enter
  */
-rt_weak void rt_interrupt_leave(void)
+void rt_interrupt_leave(void)
 {
-    LOG_D("irq is going to leave, irq current nest:%d",
-                 (rt_int32_t)rt_atomic_load(&(rt_interrupt_nest)));
-    RT_OBJECT_HOOK_CALL(rt_interrupt_leave_hook,());
-    rt_atomic_sub(&(rt_interrupt_nest), 1);
+    rt_base_t level;
 
+    RT_DEBUG_LOG(RT_DEBUG_IRQ, ("irq is going to leave, irq current nest:%d\n",
+                                (rt_int32_t)rt_interrupt_nest));
+
+    level = rt_hw_interrupt_disable();
+    RT_OBJECT_HOOK_CALL(rt_interrupt_leave_hook,());
+    rt_interrupt_nest --;
+    rt_hw_interrupt_enable(level);
 }
 RTM_EXPORT(rt_interrupt_leave);
 
@@ -113,14 +123,14 @@ RTM_EXPORT(rt_interrupt_leave);
  *
  * @return the number of nested interrupts.
  */
-rt_weak rt_uint8_t rt_interrupt_get_nest(void)
+RT_WEAK rt_uint8_t rt_interrupt_get_nest(void)
 {
     rt_uint8_t ret;
     rt_base_t level;
 
-    level = rt_hw_local_irq_disable();
-    ret = rt_atomic_load(&rt_interrupt_nest);
-    rt_hw_local_irq_enable(level);
+    level = rt_hw_interrupt_disable();
+    ret = rt_interrupt_nest;
+    rt_hw_interrupt_enable(level);
     return ret;
 }
 RTM_EXPORT(rt_interrupt_get_nest);
@@ -128,10 +138,5 @@ RTM_EXPORT(rt_interrupt_get_nest);
 RTM_EXPORT(rt_hw_interrupt_disable);
 RTM_EXPORT(rt_hw_interrupt_enable);
 
-rt_weak rt_bool_t rt_hw_interrupt_is_disabled(void)
-{
-    return RT_FALSE;
-}
-RTM_EXPORT(rt_hw_interrupt_is_disabled);
 /**@}*/
 

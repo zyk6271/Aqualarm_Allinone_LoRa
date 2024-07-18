@@ -12,11 +12,6 @@
 #include "../dlelf.h"
 
 #ifdef __arm__
-
-#define DBG_TAG           "posix.libdl.arch"
-#define DBG_LVL           DBG_INFO
-#include <rtdbg.h>
-
 int dlmodule_relocate(struct rt_dlmodule *module, Elf32_Rel *rel, Elf32_Addr sym_val)
 {
     Elf32_Addr *where, tmp;
@@ -32,8 +27,8 @@ int dlmodule_relocate(struct rt_dlmodule *module, Elf32_Rel *rel, Elf32_Addr sym
         break;
     case R_ARM_ABS32:
         *where += (Elf32_Addr)sym_val;
-        LOG_D("R_ARM_ABS32: %x -> %x",
-              where, *where);
+        RT_DEBUG_LOG(RT_DEBUG_MODULE, ("R_ARM_ABS32: %x -> %x\n",
+                                       where, *where));
         break;
     case R_ARM_PC24:
     case R_ARM_PLT32:
@@ -45,13 +40,14 @@ int dlmodule_relocate(struct rt_dlmodule *module, Elf32_Rel *rel, Elf32_Addr sym
         tmp = sym_val - (Elf32_Addr)where + (addend << 2);
         tmp >>= 2;
         *where = (*where & 0xff000000) | (tmp & 0x00ffffff);
-        LOG_D("R_ARM_PC24: %x -> %x",
-              where, *where);
+        RT_DEBUG_LOG(RT_DEBUG_MODULE, ("R_ARM_PC24: %x -> %x\n",
+                                       where, *where));
         break;
     case R_ARM_REL32:
         *where += sym_val - (Elf32_Addr)where;
-        LOG_D("R_ARM_REL32: %x -> %x, sym %x, offset %x",
-              where, *where, sym_val, rel->r_offset);
+        RT_DEBUG_LOG(RT_DEBUG_MODULE,
+                     ("R_ARM_REL32: %x -> %x, sym %x, offset %x\n",
+                      where, *where, sym_val, rel->r_offset));
         break;
     case R_ARM_V4BX:
         *where &= 0xf000000f;
@@ -61,22 +57,22 @@ int dlmodule_relocate(struct rt_dlmodule *module, Elf32_Rel *rel, Elf32_Addr sym
     case R_ARM_GLOB_DAT:
     case R_ARM_JUMP_SLOT:
         *where = (Elf32_Addr)sym_val;
-        LOG_D("R_ARM_JUMP_SLOT: 0x%x -> 0x%x 0x%x",
-              where, *where, sym_val);
+        RT_DEBUG_LOG(RT_DEBUG_MODULE, ("R_ARM_JUMP_SLOT: 0x%x -> 0x%x 0x%x\n",
+                                       where, *where, sym_val));
         break;
 #if 0        /* To do */
     case R_ARM_GOT_BREL:
         temp   = (Elf32_Addr)sym_val;
         *where = (Elf32_Addr)&temp;
-        LOG_D("R_ARM_GOT_BREL: 0x%x -> 0x%x 0x%x",
-              where, *where, sym_val);
+        RT_DEBUG_LOG(RT_DEBUG_MODULE, ("R_ARM_GOT_BREL: 0x%x -> 0x%x 0x%x\n",
+                                       where, *where, sym_val));
         break;
 #endif
 
     case R_ARM_RELATIVE:
         *where = (Elf32_Addr)sym_val + *where;
-        LOG_D("R_ARM_RELATIVE: 0x%x -> 0x%x 0x%x",
-              where, *where, sym_val);
+        RT_DEBUG_LOG(RT_DEBUG_MODULE, ("R_ARM_RELATIVE: 0x%x -> 0x%x 0x%x\n",
+                                       where, *where, sym_val));
         break;
     case R_ARM_THM_CALL:
     case R_ARM_THM_JUMP24:
@@ -122,5 +118,4 @@ int dlmodule_relocate(struct rt_dlmodule *module, Elf32_Rel *rel, Elf32_Addr sym
 
     return 0;
 }
-
-#endif /* __arm__ */
+#endif

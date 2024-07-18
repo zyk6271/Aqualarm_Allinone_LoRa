@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2023, RT-Thread Development Team
+ * Copyright (c) 2006-2022, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -11,8 +11,7 @@
 #ifndef WORKQUEUE_H__
 #define WORKQUEUE_H__
 
-#include <rtdef.h>
-#include <rtconfig.h>
+#include <rtthread.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,7 +40,6 @@ struct rt_workqueue
 
     struct rt_semaphore sem;
     rt_thread_t    work_thread;
-    struct rt_spinlock spinlock;
 };
 
 struct rt_work

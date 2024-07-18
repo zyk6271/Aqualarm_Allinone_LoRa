@@ -7,7 +7,6 @@ block_dev.c
 mmcsd_core.c
 sd.c
 sdio.c
-gpt.c
 mmc.c
 """)
 

@@ -14,6 +14,10 @@
 
 #include "armv7.h"
 
+#ifdef RT_USING_VMM
+#include <vmm_context.h>
+#endif
+
 #include "gic.h"
 
 extern struct rt_thread *rt_current_thread;
@@ -158,6 +162,15 @@ void rt_hw_trap_irq(void)
         /* turn to interrupt service routine */
         isr_func(ir, param);
     }
+#ifdef RT_USING_VMM
+    else
+    {
+        /* We have to EOI before masking the interrupts */
+        arm_gic_ack(0, fullir);
+        vmm_virq_pending(ir);
+        return;
+    }
+#endif
 
     /* end of interrupt */
     arm_gic_ack(0, fullir);

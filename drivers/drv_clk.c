@@ -18,7 +18,7 @@
 #define DBG_LVL DBG_INFO
 #include <rtdbg.h>
 
-rt_weak void SystemClock_Config(void)
+RT_WEAK void SystemClock_Config(void)
 {
     RCC_OscInitTypeDef RCC_OscInitStruct = {0};
     RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};

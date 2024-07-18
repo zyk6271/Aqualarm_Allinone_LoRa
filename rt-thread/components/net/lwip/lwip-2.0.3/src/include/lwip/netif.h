@@ -63,14 +63,6 @@ extern "C" {
 #define NETIF_MAX_HWADDR_LEN 6U
 #endif
 
-/** The size of a fully constructed netif name which the
- * netif can be identified by in APIs. Composed of
- * 2 chars, 3 (max) digits, and 1 \0
- */
-#ifndef NETIF_NAMESIZE
-#define NETIF_NAMESIZE 6
-#endif
-
 /**
  * @defgroup netif_flags Flags
  * @ingroup netif
@@ -312,7 +304,7 @@ struct netif {
   /** flags (@see @ref netif_flags) */
   u8_t flags;
   /** descriptive abbreviation */
-  char name[NETIF_NAMESIZE];
+  char name[2];
   /** number of this interface */
   u8_t num;
 #if MIB2_STATS

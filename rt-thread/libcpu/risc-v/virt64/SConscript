@@ -6,9 +6,9 @@ Import('rtconfig')
 
 cwd     = GetCurrentDir()
 src     = Glob('*.c') + Glob('*.cpp') + Glob('*_gcc.S')
-src     = src + ['../common/atomic_riscv.c']
 CPPPATH = [cwd]
+ASFLAGS = ''
 
-group = DefineGroup('libcpu', src, depend = [''], CPPPATH = CPPPATH)
+group = DefineGroup('cpu', src, depend = [''], CPPPATH = CPPPATH, ASFLAGS = ASFLAGS)
 
 Return('group')

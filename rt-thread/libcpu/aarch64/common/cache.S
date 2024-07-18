@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2020, RT-Thread Development Team
+ * Copyright (c) 2006-2022, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -127,8 +127,7 @@ __asm_flush_dcache_range:
     /* x2 <- minimal cache line size in cache system */
     sub    x3, x2, #1
     bic    x0, x0, x3
-
-1:  dc    civac, x0    /* clean & invalidate data or unified cache */
+1:    dc    civac, x0    /* clean & invalidate data or unified cache */
     add    x0, x0, x2
     cmp    x0, x1
     b.lo    1b
@@ -193,9 +192,8 @@ __asm_invalidate_icache_range:
  */
 .globl __asm_invalidate_icache_all
 __asm_invalidate_icache_all:
-    dsb     sy
-    ic      ialluis
-    isb     sy
+    ic    ialluis
+    isb    sy
     ret
 
 .globl __asm_flush_l3_cache

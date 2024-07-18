@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2023, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -9,30 +9,23 @@
 #ifndef COMPLETION_H_
 #define COMPLETION_H_
 
-#include <rtdef.h>
-#include <rtconfig.h>
+#include <rtthread.h>
 
 /**
- * Completion - A tiny IPC implementation for resource-constrained scenarios
- *
- * It's an IPC using one CPU word with the encoding:
- *
- * BIT      | MAX-1 ----------------- 1 |       0        |
- * CONTENT  |   suspended_thread & ~1   | completed flag |
+ * Completion
  */
 
 struct rt_completion
 {
-    /* suspended thread, and completed flag */
-    rt_base_t susp_thread_n_flag;
-};
+    rt_uint32_t flag;
 
-#define RT_COMPLETION_INIT(comp) {0}
+    /* suspended list */
+    rt_list_t suspended_list;
+};
 
 void rt_completion_init(struct rt_completion *completion);
 rt_err_t rt_completion_wait(struct rt_completion *completion,
                             rt_int32_t            timeout);
 void rt_completion_done(struct rt_completion *completion);
-rt_err_t rt_completion_wakeup(struct rt_completion *completion);
 
 #endif

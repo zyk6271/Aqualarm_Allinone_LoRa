@@ -336,7 +336,7 @@ rt_err_t rt_vbus_post(rt_uint8_t id,
         rt_enter_critical();
         rt_thread_suspend(thread);
 
-        rt_list_insert_after(&_chn_suspended_threads[id], &RT_THREAD_LIST_NODE(thread));
+        rt_list_insert_after(&_chn_suspended_threads[id], &thread->tlist);
         if (timeout > 0)
         {
             rt_timer_control(&(thread->thread_timer),
@@ -443,7 +443,9 @@ static void rt_vbus_notify_chn(unsigned char chnr, rt_err_t err)
     {
         rt_thread_t thread;
 
-        thread = RT_THREAD_LIST_NODE_ENTRY(_chn_suspended_threads[chnr].next);
+        thread = rt_list_entry(_chn_suspended_threads[chnr].next,
+                               struct rt_thread,
+                               tlist);
         thread->error = err;
         rt_thread_resume(thread);
     }
@@ -853,7 +855,9 @@ static int _chn0_actor(unsigned char *dp, size_t dsize)
             {
                 rt_thread_t thread;
 
-                thread = RT_THREAD_LIST_NODE_ENTRY(_chn_suspended_threads[chnr].next);
+                thread = rt_list_entry(_chn_suspended_threads[chnr].next,
+                                       struct rt_thread,
+                                       tlist);
                 rt_thread_resume(thread);
             }
             rt_exit_critical();

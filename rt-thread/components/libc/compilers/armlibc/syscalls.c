@@ -23,9 +23,8 @@
 #include <sys/stat.h>
 #include <compiler_private.h>
 #ifdef RT_USING_POSIX_STDIO
-#include <posix/stdio.h>
+    #include "libc.h"
 #endif /* RT_USING_POSIX_STDIO */
-#include <posix/stdlib.h>
 
 #define DBG_TAG    "armlibc.syscalls"
 #define DBG_LVL    DBG_INFO
@@ -154,7 +153,7 @@ int _sys_read(FILEHANDLE fh, unsigned char *buf, unsigned len, int mode)
     if (fh == STDIN)
     {
 #ifdef RT_USING_POSIX_STDIO
-        if (rt_posix_stdio_get_console() < 0)
+        if (libc_stdio_get_console() < 0)
         {
             LOG_W("Do not invoke standard output before initializing Compiler");
             return 0; /* error, but keep going */
@@ -283,18 +282,11 @@ int _sys_seek(FILEHANDLE fh, long pos)
 /**
  * used by tmpnam() or tmpfile()
  */
-#if __ARMCC_VERSION >= 6190000
-void _sys_tmpnam(char *name, int fileno, unsigned maxlength)
-{
-    rt_snprintf(name, maxlength, "tem%03d", fileno);
-}
-#else
 int _sys_tmpnam(char *name, int fileno, unsigned maxlength)
 {
     rt_snprintf(name, maxlength, "tem%03d", fileno);
     return 1;
 }
-#endif /* __ARMCC_VERSION >= 6190000 */
 
 char *_sys_command_string(char *cmd, int len)
 {
@@ -311,8 +303,9 @@ void _ttywrch(int ch)
 }
 
 /* for exit() and abort() */
-rt_weak void _sys_exit(int return_code)
+RT_WEAK void _sys_exit(int return_code)
 {
+    extern void __rt_libc_exit(int status);
     __rt_libc_exit(return_code);
     while (1);
 }
@@ -375,7 +368,7 @@ int fgetc(FILE *f)
 #ifdef RT_USING_POSIX_STDIO
     char ch;
 
-    if (rt_posix_stdio_get_console() < 0)
+    if (libc_stdio_get_console() < 0)
     {
         LOG_W("Do not invoke standard output before initializing Compiler");
         return 0;

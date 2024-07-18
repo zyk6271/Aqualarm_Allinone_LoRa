@@ -13,6 +13,21 @@
 
 #include "trap.h"
 
+/*------------ rt_hw_cpu_shutdown() function ----------------------------------
+ * DESCRIPTION: Shutdown CPU
+ * ARGUMENTS:
+ * None
+ * RETURNED VALUE: None
+-----------------------------------------------------------------------------*/
+RT_WEAK void rt_hw_cpu_shutdown(void)
+{
+    rt_kprintf("shutdown...\n");
+
+    rt_hw_interrupt_disable();
+
+    RT_ASSERT(0);
+}
+
 /*------------ nested_exception_handler() function ---------------------------
  * DESCRIPTION: Function handles Nested Exception
  * ARGUMENTS:

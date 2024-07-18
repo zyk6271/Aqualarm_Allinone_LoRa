@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2023, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -19,11 +19,6 @@
 #endif
 
 #if defined(RT_USBH_HID) && defined(RT_USBH_HID_MOUSE)
-
-#define DBG_TAG    "usbhost.umouse"
-#define DBG_LVL           DBG_INFO
-#include <rtdbg.h>
-
 static struct uprotocal mouse_protocal;
 
 #ifdef RT_USING_RTGUI
@@ -47,9 +42,9 @@ static rt_err_t rt_usbh_hid_mouse_callback(void* arg)
 #endif
     hid = (struct uhid*)arg;
 
-    LOG_D("hid 0x%x 0x%x",
+    RT_DEBUG_LOG(RT_DEBUG_USB, ("hid 0x%x 0x%x\n",
                                 *(rt_uint32_t*)hid->buffer,
-                                *(rt_uint32_t*)(&hid->buffer[4]));
+                                *(rt_uint32_t*)(&hid->buffer[4])));
 #ifdef RT_USING_RTGUI
     if(hid->buffer[1]!=0)
     {
@@ -131,8 +126,8 @@ static rt_err_t rt_usbh_hid_mouse_callback(void* arg)
     return RT_EOK;
 }
 
-static rt_thread_t mouse_thread;
-static void mouse_task(void* param)
+rt_thread_t mouse_thread;
+void mouse_task(void* param)
 {
     struct uhintf* intf = (struct uhintf*)param;
     while (1)
@@ -159,10 +154,10 @@ static rt_err_t rt_usbh_hid_mouse_init(void* arg)
 
     rt_usbh_hid_set_idle(intf, 0, 0);
 
-    mouse_thread = rt_thread_create("mouse0", mouse_task, intf, 1024, 8, 100);
+    mouse_thread = rt_thread_create("mouse0", mouse_task, intf, 500, 8, 100);
     rt_thread_startup(mouse_thread);
 
-    LOG_D("start usb mouse");
+    RT_DEBUG_LOG(RT_DEBUG_USB, ("start usb mouse\n"));
 #ifdef RT_USING_RTGUI
     RTGUI_EVENT_MOUSE_BUTTON_INIT(&emouse);
     emouse.wid = RT_NULL;
