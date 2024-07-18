@@ -135,7 +135,7 @@ void rf_encode_entry(void *paramaeter)
 void RadioQueue_Init(void)
 {
     int *p;
-    p = (int *)(0x0803FFF0);//这就是已知的地址，要强制类型转换
+    p = (int *)(0x0800BFF0);//这就是已知的地址，要强制类型转换
     local_address = *p;//从Flash加载ID
     if (local_address == 0xFFFFFFFF || local_address == 0)
     {
