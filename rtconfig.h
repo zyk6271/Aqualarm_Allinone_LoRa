@@ -25,6 +25,7 @@
 #define RT_KSERVICE_USING_STDLIB
 /* end of kservice optimization */
 #define RT_DEBUG
+#define RT_DEBUG_COLOR
 
 /* Inter-Thread communication */
 
