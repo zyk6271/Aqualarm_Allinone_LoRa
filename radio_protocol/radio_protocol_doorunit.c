@@ -49,7 +49,7 @@ static void radio_frame_doorunit_parse_heart(rx_format *rx_frame)
 
 static void radio_frame_doorunit_parse_learn(rx_format *rx_frame)
 {
-    uint32_t sub_command = 0;
+    uint8_t sub_command = 0;
     tx_format tx_frame = {0};
     aqualarm_device_t *device = RT_NULL;
 
@@ -105,10 +105,17 @@ static void radio_frame_doorunit_parse_learn(rx_format *rx_frame)
 
 static void radio_frame_doorunit_parse_valve(rx_format *rx_frame)
 {
-    aqualarm_device_t *device = aq_device_find(rx_frame->source_addr);
-    device->rssi_level = rx_frame->rssi_level;
+    uint8_t sub_command = 0;
+    aqualarm_device_t *device = RT_NULL;
 
-    uint32_t sub_command = rx_frame->rx_data[2];
+    device = aq_device_find(rx_frame->source_addr);
+    if(device == RT_NULL)
+    {
+        return;
+    }
+
+    device->rssi_level = rx_frame->rssi_level;
+    sub_command = rx_frame->rx_data[2];
 
     tx_format tx_frame = {0};
     tx_frame.msg_ack = RT_TRUE;

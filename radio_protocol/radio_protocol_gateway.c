@@ -55,7 +55,7 @@ static void radio_frame_gateway_parse_learn(rx_format *rx_frame)
 {
     tx_format tx_frame = {0};
     aqualarm_device_t *device = RT_NULL;
-    uint32_t sub_command = 0;
+    uint8_t sub_command = 0;
 
     if(rx_frame->dest_addr == 0xFFFFFFFF && allow_add_device == 1)
     {

@@ -55,7 +55,7 @@ static void radio_frame_endunit_parse_learn(rx_format *rx_frame)
 {
     tx_format tx_frame = {0};
     aqualarm_device_t *device = RT_NULL;
-    uint32_t sub_command = 0;
+    uint8_t sub_command = 0;
 
     extern uint8_t allow_add_device;
 
