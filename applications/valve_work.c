@@ -46,6 +46,7 @@ void valve_turn_control(int dir)
         {
             radio_csma_pause_set();
         }
+        valve_status = VALVE_STATUS_CLOSE;
         rt_pin_write(MOTO_CONTROL_PIN,PIN_LOW);
     }
     else
@@ -54,6 +55,7 @@ void valve_turn_control(int dir)
         {
             radio_csma_pause_set();
         }
+        valve_status = VALVE_STATUS_OPEN;
         rt_pin_write(MOTO_CONTROL_PIN,PIN_HIGH);
     }
 }
@@ -67,8 +69,6 @@ rt_err_t valve_open(void)
     }
 
     DeviceStatus = ValveOpen;
-    valve_status = VALVE_STATUS_OPEN;
-
     led_valve_on();
     beep_once();
     pd_valve_control(1);
@@ -89,13 +89,11 @@ rt_err_t valve_close(void)
     if(valve_valid == 0)
     {
         led_valve_fail();
+        valve_turn_control(-1);
         return RT_ERROR;
     }
 
     DeviceStatus = ValveClose;
-    valve_status = VALVE_STATUS_CLOSE;
-
-    led_valve_off();
     beep_key_down();
     pd_valve_control(0);
     valve_turn_control(-1);
