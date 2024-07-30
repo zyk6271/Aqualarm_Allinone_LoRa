@@ -20,10 +20,8 @@
 extern enum Device_Status DeviceStatus;
 
 //receive
-static void radio_frame_doorunit_parse_heart(rx_format *rx_frame)
+static void radio_frame_doorunit_parse_heart(rx_format *rx_frame,aqualarm_device_t *device)
 {
-    aqualarm_device_t *device = aq_device_find(rx_frame->source_addr);
-
     uint8_t sub_command = rx_frame->rx_data[2];
 
     tx_format tx_frame = {0};
@@ -47,11 +45,10 @@ static void radio_frame_doorunit_parse_heart(rx_format *rx_frame)
     }
 }
 
-static void radio_frame_doorunit_parse_learn(rx_format *rx_frame)
+static void radio_frame_doorunit_parse_learn(rx_format *rx_frame,aqualarm_device_t *device)
 {
     uint8_t sub_command = 0;
     tx_format tx_frame = {0};
-    aqualarm_device_t *device = RT_NULL;
 
     extern uint8_t allow_add_device;
 
@@ -66,8 +63,6 @@ static void radio_frame_doorunit_parse_learn(rx_format *rx_frame)
         tx_frame.tx_data = &sub_command;
         tx_frame.tx_len = 1;
         radio_doorunit_command_send(&tx_frame);
-
-        LOG_I("radio_frame_doorunit_parse_learn ack %d\r\n",rx_frame->source_addr);
     }
     else if(rx_frame->dest_addr == get_local_address())
     {
@@ -85,8 +80,7 @@ static void radio_frame_doorunit_parse_learn(rx_format *rx_frame)
         {
         case 1://add device
             aq_doorunit_delete();//just allow one device
-            device = aq_device_create(rx_frame->rssi_level,DEVICE_TYPE_DOORUNIT,rx_frame->source_addr);
-            if(device == RT_NULL)
+            if(aq_device_create(rx_frame->rssi_level,DEVICE_TYPE_DOORUNIT,rx_frame->source_addr) == RT_NULL)
             {
                 LOG_I("aq_device_create failed %d\r\n",rx_frame->source_addr);
                 learn_fail_ring();
@@ -103,19 +97,11 @@ static void radio_frame_doorunit_parse_learn(rx_format *rx_frame)
     }
 }
 
-static void radio_frame_doorunit_parse_valve(rx_format *rx_frame)
+static void radio_frame_doorunit_parse_valve(rx_format *rx_frame,aqualarm_device_t *device)
 {
     uint8_t sub_command = 0;
-    aqualarm_device_t *device = RT_NULL;
-
-    device = aq_device_find(rx_frame->source_addr);
-    if(device == RT_NULL)
-    {
-        return;
-    }
-
-    device->rssi_level = rx_frame->rssi_level;
     sub_command = rx_frame->rx_data[2];
+    device->rssi_level = rx_frame->rssi_level;
 
     tx_format tx_frame = {0};
     tx_frame.msg_ack = RT_TRUE;
@@ -158,30 +144,37 @@ static void radio_frame_doorunit_parse_valve(rx_format *rx_frame)
 
 void radio_frame_doorunit_parse(rx_format *rx_frame)
 {
+    aqualarm_device_t *device = aq_device_find(rx_frame->source_addr);
+
     if(rx_frame->rx_data[0] == LEARN_DEVICE_CMD)//learn device ignore address check
     {
-        radio_frame_doorunit_parse_learn(rx_frame);
+        radio_frame_doorunit_parse_learn(rx_frame,RT_NULL);
     }
 
-    if((rx_frame->dest_addr != get_local_address()) || (aq_device_find(rx_frame->source_addr) == RT_NULL))
+    if(device == RT_NULL)
     {
         return;
     }
 
-    aqualarm_device_heart_recv(rx_frame);
+    if((rx_frame->dest_addr != get_local_address()))
+    {
+        return;
+    }
 
     uint8_t command = rx_frame->rx_data[0];
     switch(command)
     {
     case HEART_UPLOAD_CMD:
-        radio_frame_doorunit_parse_heart(rx_frame);
+        radio_frame_doorunit_parse_heart(rx_frame,device);
         break;
     case CONTROL_VALVE_CMD:
-        radio_frame_doorunit_parse_valve(rx_frame);
+        radio_frame_doorunit_parse_valve(rx_frame,device);
         break;
     default:
         break;
     }
+
+    aqualarm_device_heart_recv(rx_frame);
 }
 
 void radio_doorunit_command_send(tx_format *tx_frame)

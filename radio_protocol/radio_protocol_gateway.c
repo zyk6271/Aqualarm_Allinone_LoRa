@@ -54,13 +54,11 @@ static void radio_frame_gateway_parse_heart(rx_format *rx_frame)
 static void radio_frame_gateway_parse_learn(rx_format *rx_frame)
 {
     tx_format tx_frame = {0};
-    aqualarm_device_t *device = RT_NULL;
     uint8_t sub_command = 0;
 
     if(rx_frame->dest_addr == 0xFFFFFFFF && allow_add_device == 1)
     {
         gateway_learn_broacast_confirm(rx_frame->source_addr);
-        LOG_D("radio_frame_endunit_parse_learn ack %d\r\n",rx_frame->source_addr);
     }
     else if(rx_frame->dest_addr == get_local_address())
     {
@@ -69,8 +67,7 @@ static void radio_frame_gateway_parse_learn(rx_format *rx_frame)
         {
         case 1://add device
             aq_gateway_delete();
-            device = aq_device_create(0,DEVICE_TYPE_GATEWAY,rx_frame->source_addr);
-            if(device == RT_NULL)
+            if(aq_device_create(0,DEVICE_TYPE_GATEWAY,rx_frame->source_addr) == RT_NULL)
             {
                 LOG_E("aq_device_create failed %d\r\n",rx_frame->source_addr);
                 learn_fail_ring();
@@ -80,7 +77,6 @@ static void radio_frame_gateway_parse_learn(rx_format *rx_frame)
                 beep_once();
                 wifi_led(1);
                 radio_refresh_learn_device();
-                device->rssi_level = rx_frame->rssi_level;
                 gateway_learn_add_upload(rx_frame->source_addr);
             }
             break;
@@ -99,7 +95,6 @@ static void radio_frame_gateway_parse_ota(rx_format *rx_frame)
 {
     uint8_t pkt_size = 0;
     uint32_t fw_size,fw_offset = 0;
-
     uint8_t sub_command = rx_frame->rx_data[2];
     switch(sub_command)
     {
@@ -149,12 +144,19 @@ static void radio_frame_gateway_parse_control(rx_format *rx_frame)
 
 void radio_frame_gateway_parse(rx_format *rx_frame)
 {
+    aqualarm_device_t *device = aq_device_find(rx_frame->source_addr);
+
     if(rx_frame->rx_data[0] == LEARN_DEVICE_CMD)//learn device ignore address check
     {
         radio_frame_gateway_parse_learn(rx_frame);
     }
 
-    if((rx_frame->dest_addr != get_local_address()) || (aq_device_find(rx_frame->source_addr) == RT_NULL))
+    if(device == RT_NULL)
+    {
+        return;
+    }
+
+    if((rx_frame->dest_addr != get_local_address()))
     {
         return;
     }

@@ -26,19 +26,17 @@ void radio_recv_start(void)
                                    LORA_CODINGRATE, 0, LORA_PREAMBLE_LENGTH,
                                    LORA_SYMBOL_TIMEOUT, LORA_FIX_LENGTH_PAYLOAD_ON_DISABLE,
                                    0, true, 0, 0, LORA_IQ_INVERSION_ON_DISABLE, true );
+
     Radio.SetMaxPayloadLength(MODEM_LORA, 255);
     Radio.Rx(0);
-}
-static void OnTxDone(void)
-{
-    LOG_D("OnTxDone");
-
-    radio_recv_start();
-    rf_txdone_callback();
 }
 
 void RF_Send(char *payload,int size)
 {
+    Radio.SetTxConfig( MODEM_LORA, LORA_TX_OUTPUT_POWER, 0, LORA_BANDWIDTH,
+                                       LORA_SPREADING_FACTOR, LORA_CODINGRATE,
+                                       LORA_PREAMBLE_LENGTH, LORA_FIX_LENGTH_PAYLOAD_ON_DISABLE,
+                                       true, 0, 0, LORA_IQ_INVERSION_ON_DISABLE, 5000 );
     Radio.Send(payload, size);
 }
 
@@ -47,21 +45,16 @@ static void OnRxDone(uint8_t *src_payload, uint16_t size, int16_t rssi, int8_t s
     radio_protocol_parse(rssi,snr,src_payload,size);
 }
 
+static void OnTxDone(void)
+{
+    LOG_D("OnTxDone");
+    radio_recv_start();
+    rf_txdone_callback();
+}
+
 static void OnTxTimeout(void)
 {
     LOG_W("OnTxTimeout\r\n");
-    radio_recv_start();
-}
-
-static void OnRxTimeout(void)
-{
-    LOG_W("OnRxTimeout\r\n");
-    radio_recv_start();
-}
-
-static void OnRxError(void)
-{
-    LOG_W("OnRxError\r\n");
     radio_recv_start();
 }
 
@@ -79,8 +72,6 @@ void radio_init(void)
     RadioEvents.TxDone = OnTxDone;
     RadioEvents.RxDone = OnRxDone;
     RadioEvents.TxTimeout = OnTxTimeout;
-    RadioEvents.RxTimeout = OnRxTimeout;
-    RadioEvents.RxError = OnRxError;
     RadioEvents.CadDone = OnCadDone;
 
     Radio.Init(&RadioEvents);
@@ -88,7 +79,7 @@ void radio_init(void)
     Radio.SetTxConfig( MODEM_LORA, LORA_TX_OUTPUT_POWER, 0, LORA_BANDWIDTH,
                                    LORA_SPREADING_FACTOR, LORA_CODINGRATE,
                                    LORA_PREAMBLE_LENGTH, LORA_FIX_LENGTH_PAYLOAD_ON_DISABLE,
-                                   true, 0, 0, LORA_IQ_INVERSION_ON_DISABLE, 5000 );
+                                   true, 0, 0, LORA_IQ_INVERSION_ON_DISABLE, 3000 );
 
     Radio.SetRxConfig( MODEM_LORA, LORA_BANDWIDTH, LORA_SPREADING_FACTOR,
                                    LORA_CODINGRATE, 0, LORA_PREAMBLE_LENGTH,

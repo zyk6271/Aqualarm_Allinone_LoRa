@@ -17,18 +17,18 @@
 #define DBG_LVL DBG_LOG
 #include <rtdbg.h>
 
+extern uint8_t allow_add_device;
 extern enum Device_Status DeviceStatus;
 extern WariningEvent SlaverSensorLostEvent;
 extern WariningEvent SlaverSensorLeakEvent;
 extern WariningEvent SlaverLowPowerEvent;
 extern WariningEvent SlaverUltraLowPowerEvent;
 
-static void radio_frame_endunit_parse_heart(rx_format *rx_frame)
+static void radio_frame_endunit_parse_heart(rx_format *rx_frame,aqualarm_device_t *device)
 {
     tx_format tx_frame = {0};
     uint8_t battery = rx_frame->rx_data[2];
     uint8_t warn_status = rx_frame->rx_data[3];
-    aqualarm_device_t *device = aq_device_find(rx_frame->source_addr);
 
     tx_frame.msg_ack = RT_TRUE;
     tx_frame.msg_type = MSG_UNCONFIRMED_DOWNLINK;
@@ -51,13 +51,10 @@ static void radio_frame_endunit_parse_heart(rx_format *rx_frame)
     gateway_warning_endunit_heart(device->device_id,battery,warn_status,device->rssi_level);
 }
 
-static void radio_frame_endunit_parse_learn(rx_format *rx_frame)
+static void radio_frame_endunit_parse_learn(rx_format *rx_frame,aqualarm_device_t *device)
 {
-    tx_format tx_frame = {0};
-    aqualarm_device_t *device = RT_NULL;
     uint8_t sub_command = 0;
-
-    extern uint8_t allow_add_device;
+    tx_format tx_frame = {0};
 
     if(rx_frame->dest_addr == 0xFFFFFFFF && allow_add_device == 1)
     {
@@ -70,8 +67,6 @@ static void radio_frame_endunit_parse_learn(rx_format *rx_frame)
         tx_frame.tx_data = &sub_command;
         tx_frame.tx_len = 1;
         radio_endunit_command_send(&tx_frame);
-
-        LOG_I("radio_frame_endunit_parse_learn ack %d\r\n",rx_frame->source_addr);
     }
     else if(rx_frame->dest_addr == get_local_address())
     {
@@ -88,8 +83,7 @@ static void radio_frame_endunit_parse_learn(rx_format *rx_frame)
         switch(sub_command)
         {
         case 1://add device
-            device = aq_device_create(rx_frame->rssi_level,DEVICE_TYPE_ENDUNIT,rx_frame->source_addr);
-            if(device == RT_NULL)
+            if(aq_device_create(rx_frame->rssi_level,DEVICE_TYPE_ENDUNIT,rx_frame->source_addr) == RT_NULL)
             {
                 LOG_I("aq_device_create failed %d\r\n",rx_frame->source_addr);
                 learn_fail_ring();
@@ -108,10 +102,8 @@ static void radio_frame_endunit_parse_learn(rx_format *rx_frame)
     }
 }
 
-static void radio_frame_endunit_parse_valve(rx_format *rx_frame)
+static void radio_frame_endunit_parse_valve(rx_format *rx_frame,aqualarm_device_t *device)
 {
-    aqualarm_device_t *device = aq_device_find(rx_frame->source_addr);
-
     uint32_t value = rx_frame->rx_data[2];
     device->rssi_level = rx_frame->rssi_level;
 
@@ -137,7 +129,6 @@ static void radio_frame_endunit_parse_valve(rx_format *rx_frame)
     else
     {
         aq_device_waterleak_set(device->device_id,0);
-
         if(DeviceStatus == SlaverSensorLeak)
         {
             if(aq_device_waterleak_find() == 0)
@@ -154,10 +145,9 @@ static void radio_frame_endunit_parse_valve(rx_format *rx_frame)
     }
 }
 
-static void radio_frame_endunit_parse_warn(rx_format *rx_frame)
+static void radio_frame_endunit_parse_warn(rx_format *rx_frame,aqualarm_device_t *device)
 {
     uint8_t send_buf[2] = {0};
-    aqualarm_device_t *device = aq_device_find(rx_frame->source_addr);
 
     send_buf[0] = rx_frame->rx_data[2];
     send_buf[1] = rx_frame->rx_data[3];
@@ -203,35 +193,41 @@ static void radio_frame_endunit_parse_warn(rx_format *rx_frame)
 
 void radio_frame_endunit_parse(rx_format *rx_frame)
 {
+    aqualarm_device_t *device = aq_device_find(rx_frame->source_addr);
+
     if(rx_frame->rx_data[0] == LEARN_DEVICE_CMD)//learn device ignore address check
     {
-        radio_frame_endunit_parse_learn(rx_frame);
+        radio_frame_endunit_parse_learn(rx_frame,RT_NULL);
     }
 
-    if((rx_frame->dest_addr != get_local_address()) || (aq_device_find(rx_frame->source_addr) == RT_NULL))
+    if(device == RT_NULL)
     {
         return;
     }
 
-    aqualarm_device_heart_recv(rx_frame);
+    if((rx_frame->dest_addr != get_local_address()))
+    {
+        return;
+    }
 
     uint8_t command = rx_frame->rx_data[0];
     switch(command)
     {
     case HEART_UPLOAD_CMD:
-        radio_frame_endunit_parse_heart(rx_frame);
+        radio_frame_endunit_parse_heart(rx_frame,device);
         break;
     case CONTROL_VALVE_CMD:
-        radio_frame_endunit_parse_valve(rx_frame);
+        radio_frame_endunit_parse_valve(rx_frame,device);
         break;
     case WARNING_UPLOAD_CMD:
-        radio_frame_endunit_parse_warn(rx_frame);
+        radio_frame_endunit_parse_warn(rx_frame,device);
         break;
     default:
         break;
     }
 
-    warning_offline_check();
+//    aqualarm_device_heart_recv(rx_frame);
+//    warning_offline_check();
 }
 
 //transmit

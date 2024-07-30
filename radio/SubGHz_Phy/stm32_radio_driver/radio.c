@@ -667,7 +667,7 @@ rt_event_t rf_event = RT_NULL;
 rt_thread_t rf_thread = RT_NULL;
 
 #define RF_IRQ_Event      1<<0
-#
+
 /* Private  functions ---------------------------------------------------------*/
 /**
   * @brief  lora_radio_thread_entry
@@ -694,7 +694,7 @@ static void RadioInit( RadioEvents_t *events )
     TimerInit( &RxTimeoutTimer, RadioOnRxTimeoutIrq );
 
     rf_event = rt_event_create("wl_rf_event", RT_IPC_FLAG_PRIO);
-    rf_thread = rt_thread_create("wl_rf_thread",rf_thread_entry,RT_NULL,2048,10,10);
+    rf_thread = rt_thread_create("wl_rf_thread", rf_thread_entry, RT_NULL, 2048, 5, 10);
     rt_thread_startup(rf_thread);
 
     RadioEvents = events;

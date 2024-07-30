@@ -24,16 +24,8 @@ static struct rt_completion rf_ack_sem, rf_txdone_sem;
 
 uint32_t local_address = 0;
 
-#define MAX_LBT_RETRY_TIMES     3
-#define MAX_ACK_RETRY_TIMES     3
-
-struct send_msg
-{
-    char    data_ptr[253];   /* 数据块首地址 */
-    uint8_t data_size;   /* 数据块大小   */
-    uint8_t need_ack;    /* 需要应答   */
-    uint8_t parameter;   /* 数据参数   */
-};
+#define MAX_LBT_RETRY_TIMES     2
+#define MAX_ACK_RETRY_TIMES     2
 
 uint32_t get_local_address(void)
 {
@@ -73,20 +65,21 @@ rt_err_t rf_send_with_lbt(uint8_t freq_type,char* data_ptr,uint8_t data_size)
         else
         {
             LOG_E("CSMA check retry at start %d",retry_times);
-            rt_thread_mdelay(200);
+            rt_thread_mdelay(400);
         }
     }
 
     if (retry_times >= MAX_LBT_RETRY_TIMES)
     {
        LOG_E("send fail because channel busy\n");
+       radio_recv_start();
        return RT_ERROR;
     }
     else
     {
         rt_completion_init(&rf_txdone_sem);
         RF_Send(data_ptr, data_size);
-        if(rt_completion_wait(&rf_txdone_sem, 500) == RT_EOK)
+        if(rt_completion_wait(&rf_txdone_sem, 1000) == RT_EOK)
         {
             LOG_D("rf_send_with_lbt send packet success");
             return RT_EOK;
@@ -112,7 +105,7 @@ void rf_encode_entry(void *paramaeter)
                 rt_completion_init(&rf_ack_sem);
                 if(rf_send_with_lbt(msg_ptr.parameter, msg_ptr.data_ptr, msg_ptr.data_size) == RT_EOK)
                 {
-                    if(rt_completion_wait(&rf_ack_sem, 500) == RT_EOK)
+                    if(rt_completion_wait(&rf_ack_sem, 1000) == RT_EOK)
                     {
                         LOG_D("rf_send_with_lbt ack success");
                         break;
