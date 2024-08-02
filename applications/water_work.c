@@ -139,7 +139,7 @@ void InternalValveFailEventCallback(void *parameter)
     led_valve_on_pause();
     led_moto_fail_start();
     DeviceStatus = InternalValveFail;
-    gateway_warning_master_valve_fail(3);
+    gateway_warning_master_valve_check(3);
 }
 
 void ExternalValveFailEventCallback(void *parameter)
@@ -147,7 +147,7 @@ void ExternalValveFailEventCallback(void *parameter)
     led_valve_on_pause();
     led_moto_fail_start();
     DeviceStatus = ExternalValveFail;
-    gateway_warning_master_valve_fail(4);
+    gateway_warning_master_valve_check(4);
 }
 
 void warning_init(void)

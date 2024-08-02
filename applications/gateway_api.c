@@ -49,7 +49,7 @@ void gateway_warning_master_lost(uint8_t value)
     radio_gateway_command_send(&tx_frame);
 }
 
-void gateway_warning_master_valve_fail(uint8_t value)
+void gateway_warning_master_valve_check(uint8_t value)
 {
     tx_format tx_frame = {0};
     uint8_t send_buf[8] = {0};
