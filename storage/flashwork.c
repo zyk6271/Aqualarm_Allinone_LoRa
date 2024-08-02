@@ -469,6 +469,23 @@ uint8_t aq_device_clone_upload(uint8_t *send_buf)
     return len;
 }
 
+uint8_t aq_device_slaver_count(void)
+{
+    rt_slist_t *node;
+    uint8_t count = 0;
+    aqualarm_device_t *device = RT_NULL;
+    rt_slist_for_each(node, &_device_list)
+    {
+        device = rt_slist_entry(node, aqualarm_device_t, slist);
+        if(device->type != DEVICE_TYPE_GATEWAY)
+        {
+            count ++;
+        }
+    }
+
+    return count;
+}
+
 uint8_t aqualarm_device_heart_recv(rx_format *rx_frame)
 {
     rt_slist_t *node;

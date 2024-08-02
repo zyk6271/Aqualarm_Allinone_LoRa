@@ -76,8 +76,15 @@ void heart_connect_timer_callback(void *parameter)
 
 void heart_thread_entry(void *parameter)
 {
-    rt_thread_mdelay(random_second_get(6,20) * 500);//3-10秒
-    gateway_connect_start();
+    if(aq_gateway_find())
+    {
+        wifi_led(0);
+        rt_thread_mdelay(random_second_get(20,40) * 500);//10-20秒
+        if(aq_device_recv_find(aq_gateway_find()) == 0)
+        {
+            gateway_connect_start();
+        }
+    }
     while (1)
     {
         if(aq_gateway_find())

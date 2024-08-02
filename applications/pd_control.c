@@ -225,6 +225,11 @@ uint8_t pd_valve_error_check(void)
     return error;
 }
 
+uint8_t pd_chip_lock_voltage_get(void)
+{
+    return pd_voltage_level;
+}
+
 void pd_chip_plug_in_handshake(struct pd_chip_t *pd)
 {
     pd->pd_type = pd_chip_type_get(pd->pd_chip_device);

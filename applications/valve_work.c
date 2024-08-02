@@ -27,6 +27,7 @@ static uint8_t internal_valve_warning = 0;
 #define VALVE_STATUS_OPEN    1
 
 rt_timer_t valve_open_timer = RT_NULL;
+rt_timer_t valve_open_once_timer = RT_NULL;
 rt_timer_t valve_close_timer = RT_NULL;
 rt_timer_t valve_detect_timer = RT_NULL;
 rt_timer_t valve_internal_first_check_timer = RT_NULL;
@@ -68,6 +69,12 @@ rt_err_t valve_open(void)
         return RT_ERROR;
     }
 
+    if(pd_chip_lock_voltage_get() < 3)
+    {
+        led_valve_fail();
+        return RT_ERROR;
+    }
+
     DeviceStatus = ValveOpen;
     led_valve_on();
     beep_once();
@@ -75,6 +82,7 @@ rt_err_t valve_open(void)
     valve_turn_control(1);
 
     rt_timer_stop(valve_close_timer);
+    rt_timer_stop(valve_open_once_timer);
     rt_timer_stop(valve_external_check_timer);
     rt_timer_stop(valve_internal_first_check_timer);
     rt_timer_stop(valve_internal_final_check_timer);
@@ -90,15 +98,18 @@ rt_err_t valve_close(void)
     {
         led_valve_fail();
         valve_turn_control(-1);
+        pd_valve_control(0);
         return RT_ERROR;
     }
 
     DeviceStatus = ValveClose;
+    led_valve_off();
     beep_key_down();
     pd_valve_control(0);
     valve_turn_control(-1);
 
     rt_timer_stop(valve_open_timer);
+    rt_timer_stop(valve_open_once_timer);
     rt_timer_stop(valve_detect_timer);
     rt_timer_stop(valve_external_check_timer);
     rt_timer_stop(valve_internal_first_check_timer);
@@ -143,6 +154,7 @@ void valve_check(void)
         valve_turn_control(-1);
         pd_valve_check();
         rt_timer_stop(valve_open_timer);
+        rt_timer_stop(valve_open_once_timer);
         rt_timer_stop(valve_close_timer);
         rt_timer_stop(valve_detect_timer);
         rt_timer_stop(valve_internal_final_check_timer);
@@ -261,6 +273,11 @@ void valve_detect_timer_callback(void *parameter)
     valve_check();
 }
 
+void valve_open_once_timer_callback(void *parameter)
+{
+    valve_open();
+}
+
 void valve_init(void)
 {
     lock_status = flash_get_key("valve_lock");
@@ -275,6 +292,7 @@ void valve_init(void)
     valve_open_timer = rt_timer_create("valve_open", valve_open_timer_callback, RT_NULL, 30000, RT_TIMER_FLAG_ONE_SHOT|RT_TIMER_FLAG_SOFT_TIMER);
     valve_close_timer = rt_timer_create("valve_close", valve_close_timer_callback, RT_NULL, 30000, RT_TIMER_FLAG_ONE_SHOT|RT_TIMER_FLAG_SOFT_TIMER);
     valve_detect_timer  = rt_timer_create("valve_detect", valve_detect_timer_callback, RT_NULL, 60*1000*5, RT_TIMER_FLAG_ONE_SHOT|RT_TIMER_FLAG_SOFT_TIMER);
+    valve_open_once_timer = rt_timer_create("valve_open_once", valve_open_once_timer_callback, RT_NULL, 2*1000, RT_TIMER_FLAG_ONE_SHOT|RT_TIMER_FLAG_SOFT_TIMER);
 
     if(aq_device_waterleak_find())
     {
@@ -282,6 +300,6 @@ void valve_init(void)
     }
     else
     {
-        valve_open();
+        rt_timer_start(valve_open_once_timer);
     }
 }

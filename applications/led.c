@@ -142,7 +142,8 @@ void wifi_led(uint8_t num)
     {
     case 0://无设备
         led_stop(led_obj_wifi_red_led);
-        led_stop(led_obj_wifi_green_led);
+        led_set_mode(led_obj_wifi_green_led, LOOP_PERMANENT,"500,500,");
+        led_start(led_obj_wifi_green_led);
         break;
     case 1://心跳成功
         led_stop(led_obj_wifi_red_led);

@@ -19,6 +19,7 @@
 #include <rtdbg.h>
 
 #define CSMA_NOISE_THRESHOLD_IN_DBM (-75)
+#define CSMA_NOISE_THRESHOLD_IN_DBM_VALVE (-20)
 #define CSMA_WINDOW_TIME 5
 
 rt_timer_t csma_pause_timer = RT_NULL;
@@ -48,8 +49,6 @@ void radio_cad_detected(uint8_t channelActivityDetected)
 
 rt_err_t csma_check_start(uint32_t send_freq)
 {
-    rt_err_t ret = RT_EOK;
-
     cad_detected = 0;
     Radio.Standby();
     Radio.SetChannel( send_freq );
@@ -60,19 +59,14 @@ rt_err_t csma_check_start(uint32_t send_freq)
     if(cad_detected)
     {
         LOG_E("CAD detected valid frame,exit csma");
-        ret = RT_ERROR;
-        return ret;
+        return RT_ERROR;
     }
 
-    if(csma_pause == 0)
+    if(Radio.IsChannelFree(send_freq,200000,csma_pause > 0 ? CSMA_NOISE_THRESHOLD_IN_DBM_VALVE : CSMA_NOISE_THRESHOLD_IN_DBM,CSMA_WINDOW_TIME) == 0)
     {
-        if(Radio.IsChannelFree(send_freq,200000,CSMA_NOISE_THRESHOLD_IN_DBM,CSMA_WINDOW_TIME) == 0)
-        {
-            LOG_E("RSSI detected too high,exit csma");
-            ret = RT_ERROR;
-            return ret;
-        }
+        LOG_E("RSSI detected too high,exit csma");
+        return RT_ERROR;
     }
 
-    return ret;
+    return RT_EOK;
 }
