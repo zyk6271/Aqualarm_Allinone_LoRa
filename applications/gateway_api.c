@@ -316,7 +316,7 @@ void gateway_heart_upload_poweron(void)
     send_buf[2] = get_valve_status();//valve status
     send_buf[3] = fw_main_ver;//fw_main_ver
     send_buf[4] = fw_sub_ver;//fw_sub_ver
-    send_buf[5] = aq_device_slave_count();//slave_count
+    send_buf[5] = aq_device_slaver_count();//slave_count
 
     tx_frame.msg_ack = RT_TRUE;
     tx_frame.msg_type = MSG_UNCONFIRMED_UPLINK;
