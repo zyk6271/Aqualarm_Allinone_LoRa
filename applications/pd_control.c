@@ -114,8 +114,8 @@ void pd_chip_factory_info_set(struct rt_spi_device *device)
     data |= rt_pin_read(MOTO_OPEN_STATUS_PIN) << 1;
     data |= rt_pin_read(SENSOR_LOST_PIN) << 2;
     data |= rt_pin_read(SENSOR_LEAK_PIN) << 3;
-    data |= !antenna_switch_flag << 4;
-    data |= antenna_switch_flag << 5;
+//    data |= !antenna_switch_flag << 4;
+//    data |= antenna_switch_flag << 5;
     data |= rt_pin_read(PD_CHIP_IRQ1_PIN) << 6;
     data |= rt_pin_read(PD_CHIP_IRQ2_PIN) << 7;
     pd_spi_write_single(device,0x08,data);
@@ -151,15 +151,6 @@ void pd_chip_factory_period_read_callback(void *parameter)
         if(simu_valve_check)
         {
             valve_check();
-        }
-    }
-
-    if(simu_ant_switch != (action_data & 0x04))
-    {
-        simu_ant_switch = action_data & 0x04;
-        if(simu_ant_switch)
-        {
-            radio_antenna_switch(antenna_switch_flag);
         }
     }
 }

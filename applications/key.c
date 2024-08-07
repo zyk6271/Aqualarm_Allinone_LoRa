@@ -16,7 +16,6 @@
 #define DBG_LVL DBG_LOG
 #include <rtdbg.h>
 
-uint8_t antenna_switch_flag;
 uint8_t key_on_count,key_off_count,key_on_off_flag = 0;
 uint8_t key_on_long_click,key_off_long_click = 0;
 
@@ -180,9 +179,6 @@ void key_on_long_hold_handle(void)
             if(key_on_long_click == 0)
             {
                 key_on_long_click = 1;
-                antenna_switch_flag = !antenna_switch_flag;
-                radio_antenna_switch(antenna_switch_flag);
-                flash_set_key("antenna",antenna_switch_flag);
             }
         }
     }
@@ -242,20 +238,12 @@ void water_lost_plugout_callback(agile_btn_t *btn)
     LOG_D("water_lost_down_callback\r\n");
 }
 
-void radio_antenna_switch(uint8_t flag)
-{
-    led_antenna_switch(antenna_switch_flag);
-    rt_pin_write(ANT_INT_PIN, !antenna_switch_flag);
-    rt_pin_write(ANT_EXT_PIN, antenna_switch_flag);
-    beep_once();
-}
-
 void button_init(void)
 {
-    antenna_switch_flag = flash_get_key("antenna");
     rt_pin_mode(ANT_INT_PIN, PIN_MODE_OUTPUT);
     rt_pin_mode(ANT_EXT_PIN, PIN_MODE_OUTPUT);
-    radio_antenna_switch(antenna_switch_flag);
+    rt_pin_write(ANT_INT_PIN, PIN_LOW);
+    rt_pin_write(ANT_EXT_PIN, PIN_HIGH);
 
     key_on_btn = agile_btn_create(KEY_ON_PIN, PIN_LOW, PIN_MODE_INPUT);
     key_off_btn = agile_btn_create(KEY_OFF_PIN, PIN_LOW, PIN_MODE_INPUT);

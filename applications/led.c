@@ -30,8 +30,6 @@ static led_t *led_obj_wifi_green_led = RT_NULL;
 static led_t *led_obj_wifi_red_led = RT_NULL;
 static led_t *led_obj_wifi_blue_led = RT_NULL;
 
-static led_t *led_obj_ext_antenna = RT_NULL;
-
 rt_thread_t led_thread = RT_NULL;
 
 uint8_t led_valve_on_pause_flag = 0;
@@ -321,18 +319,6 @@ void led_loss_off(void)
     led_stop(led_obj_loss_red);
 }
 
-void led_antenna_switch(uint8_t flag)
-{
-    if(flag)
-    {
-        led_start(led_obj_ext_antenna);
-    }
-    else
-    {
-        led_stop(led_obj_ext_antenna);
-    }
-}
-
 int led_init(void)
 {
     led_mem_opreation.malloc_fn = (void* (*)(size_t))rt_malloc;
@@ -377,9 +363,6 @@ int led_init(void)
 
     led_obj_wifi_blue_led = led_create(gw_blue_on, gw_blue_off, NULL);
     led_set_mode(led_obj_wifi_blue_led, 1, "50,50,");
-
-    led_obj_ext_antenna = led_create(antenna_green_on, antenna_green_off, NULL);
-    led_set_mode(led_obj_ext_antenna, LOOP_PERMANENT, "200,0,");
 
     led_thread = rt_thread_create("signal_led",
                             led_run,
