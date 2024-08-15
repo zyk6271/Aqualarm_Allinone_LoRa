@@ -210,6 +210,7 @@ void delay_close_timer_callback(void *parameter)
     {
         valve_lock();
         valve_close();
+        gateway_control_master_control(0);
     }
 }
 
