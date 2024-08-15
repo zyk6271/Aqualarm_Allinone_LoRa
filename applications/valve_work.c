@@ -206,7 +206,11 @@ void valve_open_once_timer_callback(void *parameter)
 
 void delay_close_timer_callback(void *parameter)
 {
-    valve_close();
+    if(DeviceStatus == ValveClose || DeviceStatus == ValveOpen)
+    {
+        valve_lock();
+        valve_close();
+    }
 }
 
 void valva_check_timer_callback(void *parameter)
@@ -290,10 +294,7 @@ void valve_delay_control(uint8_t value)
 {
     if(value)
     {
-        if(warning_status_get() == ValveClose || warning_status_get() == ValveOpen)
-        {
-            rt_timer_start(delay_close_timer);
-        }
+        rt_timer_start(delay_close_timer);
     }
     else
     {

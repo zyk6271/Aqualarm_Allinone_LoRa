@@ -132,8 +132,11 @@ static void radio_frame_doorunit_parse_valve(rx_format *rx_frame,aqualarm_device
         }
         break;
     case 2://delay start
-        valve_delay_control(1);
-        gateway_control_door_delay(rx_frame->source_addr,1,rx_frame->rssi_level);
+        if(DeviceStatus == ValveClose || DeviceStatus == ValveOpen)
+        {
+            valve_delay_control(1);
+            gateway_control_door_delay(rx_frame->source_addr,1,rx_frame->rssi_level);
+        }
         break;
     case 3://delay stop
         valve_delay_control(0);
