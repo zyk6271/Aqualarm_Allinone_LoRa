@@ -39,65 +39,55 @@ led_mem_opreation_t led_mem_opreation;
 
 static void gw_green_on(void *param)
 {
-    ws2812b_green(1,1);
+    ws2812b_green(0,1);
 }
 
 static void gw_green_off(void *param)
 {
-    ws2812b_green(1,0);
+    ws2812b_green(0,0);
 }
 
 static void gw_red_on(void *param)
 {
-    ws2812b_red(1,1);
+    ws2812b_red(0,1);
 }
 
 static void gw_red_off(void *param)
 {
-    ws2812b_red(1,0);
+    ws2812b_red(0,0);
 }
 
 static void gw_blue_on(void *param)
 {
-    ws2812b_blue(1,1);
+    ws2812b_blue(0,1);
 }
 
 static void gw_blue_off(void *param)
 {
-    ws2812b_blue(1,0);
-}
-
-static void antenna_green_on(void *param)
-{
-    ws2812b_green(0,1);
-}
-
-static void antenna_green_off(void *param)
-{
-    ws2812b_green(0,0);
+    ws2812b_blue(0,0);
 }
 
 static void off_red_on(void *param)
 {
-    ws2812b_red(2,1);
+    ws2812b_red(1,1);
 }
 
 static void off_red_off(void *param)
 {
-    ws2812b_red(2,0);
+    ws2812b_red(1,0);
 }
 
 static void on_green_on(void *param)
 {
     if(led_valve_on_pause_flag == 0)
     {
-        ws2812b_green(2,1);
+        ws2812b_green(1,1);
     }
 }
 
 static void on_green_off(void *param)
 {
-    ws2812b_green(2,0);
+    ws2812b_green(1,0);
 }
 
 static void beep_on(void *param)

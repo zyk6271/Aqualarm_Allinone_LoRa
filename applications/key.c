@@ -179,6 +179,7 @@ void key_on_long_hold_handle(void)
             if(key_on_long_click == 0)
             {
                 key_on_long_click = 1;
+                //valve_check();
             }
         }
     }

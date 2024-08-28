@@ -187,6 +187,7 @@ uint8_t pd_valve_error_close(void)
             error |= pd_spi_read_single(pd_chip[i].pd_chip_device,0x04) & 0x01;
         }
     }
+
     return error;
 }
 
@@ -200,6 +201,7 @@ uint8_t pd_valve_error_open(void)
             error |= pd_spi_read_single(pd_chip[i].pd_chip_device,0x04) & 0x02;
         }
     }
+
     return error;
 }
 
@@ -213,6 +215,7 @@ uint8_t pd_valve_error_check(void)
             error |= pd_spi_read_single(pd_chip[i].pd_chip_device,0x04) & 0x04;
         }
     }
+
     return error;
 }
 

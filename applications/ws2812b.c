@@ -62,7 +62,6 @@ void ws2812b_init(void)
 
     RGB_SetColor(0,BLACK);
     RGB_SetColor(1,BLACK);
-    RGB_SetColor(2,BLACK);
 }
 
 void TIM2_IRQHandler(void)

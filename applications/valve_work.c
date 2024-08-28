@@ -22,7 +22,6 @@ static uint8_t valve_status = 0;
 static uint8_t lock_status = 0;
 static uint8_t valve_valid = 1;
 static uint8_t valve_check_tick = 0;
-static uint8_t internal_valve_warning = 0;
 
 #define VALVE_STATUS_CLOSE   0
 #define VALVE_STATUS_OPEN    1
@@ -148,24 +147,28 @@ void valve_open_timer_callback(void *parameter)
 {
     uint8_t internal_valve_result = rt_pin_read(MOTO_OPEN_STATUS_PIN);
     uint8_t external_valve_result = pd_valve_error_open();
-    if(internal_valve_result == 0 && external_valve_result == 0)
+
+    if(internal_valve_result == 0)
     {
         valve_valid = 1;
         valvefail_warning_disable();
-        LOG_D("valve_open_timer_callback check success\r\n");
+        LOG_D("valve_open_timer_callback internal_valve_check success");
     }
     else
     {
         valve_valid = 0;
-        if(internal_valve_result)
-        {
-            warning_enable(InternalValveFailEvent);
-        }
-        if(external_valve_result)
-        {
-            warning_enable(ExternalValveFailEvent);
-        }
-        LOG_E("valve_open_timer_callback check failed,internal_valve_result %d,external_valve_result %d\r\n",internal_valve_result,external_valve_result);
+        warning_enable(InternalValveFailEvent);
+        LOG_E("valve_open_timer_callback internal_valve_check failed");
+    }
+
+    if(external_valve_result == 0)
+    {
+        LOG_D("valve_open_timer_callback external_valve_check success\r\n");
+    }
+    else
+    {
+        gateway_warning_master_valve_check(4);
+        LOG_E("valve_open_timer_callback external_valve_check failed");
     }
 }
 
@@ -173,24 +176,28 @@ void valve_close_timer_callback(void *parameter)
 {
     uint8_t internal_valve_result = rt_pin_read(MOTO_CLOSE_STATUS_PIN);
     uint8_t external_valve_result = pd_valve_error_close();
-    if(internal_valve_result == 0 && external_valve_result == 0)
+
+    if(internal_valve_result == 0)
     {
         valve_valid = 1;
         valvefail_warning_disable();
-        LOG_D("valve_close_timer_callback check success\r\n");
+        LOG_D("valve_close_timer_callback internal_valve_check success");
     }
     else
     {
         valve_valid = 0;
-        if(internal_valve_result)
-        {
-            warning_enable(InternalValveFailEvent);
-        }
-        if(external_valve_result)
-        {
-            warning_enable(ExternalValveFailEvent);
-        }
-        LOG_E("valve_close_timer_callback check failed,internal_valve_result %d,external_valve_result %d\r\n",internal_valve_result,external_valve_result);
+        warning_enable(InternalValveFailEvent);
+        LOG_E("valve_close_timer_callback internal_valve_check failed");
+    }
+
+    if(external_valve_result == 0)
+    {
+        LOG_D("valve_close_timer_callback external_valve_check success\r\n");
+    }
+    else
+    {
+        gateway_warning_master_valve_check(4);
+        LOG_E("valve_close_timer_callback external_valve_check failed");
     }
 }
 
@@ -221,7 +228,6 @@ void valva_check_timer_callback(void *parameter)
     case 0://start turn
         if(valve_status == VALVE_STATUS_OPEN)
         {
-            internal_valve_warning = 0;
             valve_turn_control(1);
             pd_valve_check();
         }
@@ -238,7 +244,6 @@ void valva_check_timer_callback(void *parameter)
         else
         {
             valve_valid = 0;
-            internal_valve_warning = 1;
             rt_timer_stop(valve_check_timer);
             warning_enable(InternalValveFailEvent);
         }
@@ -251,7 +256,6 @@ void valva_check_timer_callback(void *parameter)
         else
         {
             valve_valid = 0;
-            internal_valve_warning = 1;
             rt_timer_stop(valve_check_timer);
             warning_enable(InternalValveFailEvent);
         }
@@ -259,12 +263,13 @@ void valva_check_timer_callback(void *parameter)
     case 28://check forward
         if(rt_pin_read(MOTO_OPEN_STATUS_PIN) == 0)
         {
+            valve_valid = 1;
+            valvefail_warning_disable();
             gateway_warning_master_valve_check(1);
         }
         else
         {
             valve_valid = 0;
-            internal_valve_warning = 1;
             rt_timer_stop(valve_check_timer);
             warning_enable(InternalValveFailEvent);
         }
@@ -273,17 +278,11 @@ void valva_check_timer_callback(void *parameter)
         rt_timer_stop(valve_check_timer);
         if(pd_valve_error_check() == 0)
         {
-            if(internal_valve_warning == 0)
-            {
-                valve_valid = 1;
-                valvefail_warning_disable();
-            }
             gateway_warning_master_valve_check(2);
         }
         else
         {
-            valve_valid = 0;
-            warning_enable(ExternalValveFailEvent);
+            gateway_warning_master_valve_check(4);
         }
         break;
     default:
