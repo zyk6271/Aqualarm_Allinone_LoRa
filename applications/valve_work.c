@@ -74,6 +74,7 @@ rt_err_t valve_open(void)
     pd_valve_control(1);
     valve_turn_control(1);
 
+    rt_timer_stop(delay_close_timer);
     rt_timer_stop(valve_check_timer);
     rt_timer_stop(valve_close_timer);
     rt_timer_start(valve_open_timer);
@@ -98,6 +99,7 @@ rt_err_t valve_close(void)
     pd_valve_control(0);
     valve_turn_control(-1);
 
+    rt_timer_stop(delay_close_timer);
     rt_timer_stop(valve_check_timer);
     rt_timer_stop(valve_open_timer);
     rt_timer_stop(valve_detect_timer);
