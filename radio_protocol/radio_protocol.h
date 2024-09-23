@@ -52,6 +52,7 @@ typedef struct
 #define DEVICE_TYPE_ALLINONE          0x03
 #define DEVICE_TYPE_DOORUNIT          0x04
 #define DEVICE_TYPE_PWRSTOP           0x05
+#define DEVICE_TYPE_MOTION_SENSOR     0x06
 
 #define NETID_TEST_ENV                0x01
 #define NETID_CHN_ENV                 0x02

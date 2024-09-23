@@ -265,6 +265,31 @@ void gateway_control_door_delay(uint32_t device_addr,uint8_t value,uint8_t rssi_
     radio_gateway_command_send(&tx_frame);
 }
 
+void gateway_control_motion_sensor_control(uint32_t device_addr,uint8_t rssi_level,uint8_t value,uint8_t range_time_level,uint8_t delay_time_level,uint8_t human_detected)
+{
+    tx_format tx_frame = {0};
+    uint8_t send_buf[16] = {0};
+
+    send_buf[0] = 4;//slaver control
+    send_buf[1] = (device_addr>>24) & 0xFF;
+    send_buf[2] = (device_addr>>16) & 0xFF;
+    send_buf[3] = (device_addr>>8) & 0xFF;
+    send_buf[4] = device_addr & 0xFF;
+    send_buf[5] = value;
+    send_buf[6] = rssi_level;
+    send_buf[7] = range_time_level;
+    send_buf[8] = delay_time_level;
+    send_buf[9] = human_detected;
+
+    tx_frame.msg_type = MSG_CONFIRMED_UPLINK;
+    tx_frame.dest_addr = aq_gateway_find();
+    tx_frame.source_addr = get_local_address();
+    tx_frame.command = CONTROL_VALVE_CMD;
+    tx_frame.tx_data = send_buf;
+    tx_frame.tx_len = 10;
+    radio_gateway_command_send(&tx_frame);
+}
+
 void gateway_learn_broacast_confirm(uint32_t dst_addr)
 {
     tx_format tx_frame = {0};
@@ -372,6 +397,31 @@ void gateway_heart_doorunit_upload(uint32_t device_addr,uint8_t rssi_level,uint8
     tx_frame.command = HEART_UPLOAD_CMD;
     tx_frame.tx_data = send_buf;
     tx_frame.tx_len = 7;
+    radio_gateway_command_send(&tx_frame);
+}
+
+void gateway_heart_motion_sensor_upload(uint32_t device_addr,uint8_t rssi_level,uint8_t range_time_level,uint8_t delay_time_level,uint8_t human_detected)
+{
+    tx_format tx_frame = {0};
+    uint8_t send_buf[16] = {0};
+
+    send_buf[0] = 3;//motion sensor heart
+    send_buf[1] = (device_addr>>24) & 0xFF;
+    send_buf[2] = (device_addr>>16) & 0xFF;
+    send_buf[3] = (device_addr>>8) & 0xFF;
+    send_buf[4] = device_addr & 0xFF;
+    send_buf[5] = rssi_level;
+    send_buf[6] = range_time_level;
+    send_buf[7] = delay_time_level;
+    send_buf[8] = human_detected;
+
+    tx_frame.msg_ack = RT_TRUE;
+    tx_frame.msg_type = MSG_UNCONFIRMED_UPLINK;
+    tx_frame.dest_addr = aq_gateway_find();
+    tx_frame.source_addr = get_local_address();
+    tx_frame.command = HEART_UPLOAD_CMD;
+    tx_frame.tx_data = send_buf;
+    tx_frame.tx_len = 9;
     radio_gateway_command_send(&tx_frame);
 }
 

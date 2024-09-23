@@ -67,6 +67,9 @@ void radio_protocol_parse(int rssi,int snr,uint8_t* data,size_t len)
 
     switch(rx_frame.device_type)
     {
+    case DEVICE_TYPE_MOTION_SENSOR:
+        radio_frame_motion_parse(&rx_frame);
+        break;
     case DEVICE_TYPE_ENDUNIT:
         radio_frame_endunit_parse(&rx_frame);
         break;
