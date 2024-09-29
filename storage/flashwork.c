@@ -24,7 +24,7 @@
 #define DBG_LVL DBG_LOG
 #include <rtdbg.h>
 
-#define MAX_DEVICE  12
+#define MAX_SLAVER_DEVICE  12
 
 rt_spi_flash_device_t w25q16;
 
@@ -122,7 +122,7 @@ void read_device_from_flash(void)
 int8_t get_free_device_slot(void)
 {
     uint32_t index = 0; // 记录当前位的索引
-    while (index < 32)
+    while (index < MAX_SLAVER_DEVICE)
     {
         if ((total_slot & (1 << index)) == 0)
         {
