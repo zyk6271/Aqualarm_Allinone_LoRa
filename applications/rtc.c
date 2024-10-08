@@ -12,34 +12,31 @@ rt_sem_t rtc_sem;
 RTC_HandleTypeDef rtc_handle;
 rt_thread_t rtc_thread = RT_NULL;
 
-static uint8_t Valve_Hours,RTC_Counter = 0;
+static uint8_t valve_hours,rtc_hours = 0;
 
 void rtc_thread_entry(void *parameter)
 {
     while(1)
     {
         rt_sem_take(rtc_sem, RT_WAITING_FOREVER);
+        LOG_I("rtc_hours is %d\r\n",rtc_hours);
 
-        gateway_heart_check();
-
-        if((++ Valve_Hours) %120 == 0)
+        if((++ valve_hours) %120 == 0)
         {
-            Valve_Hours = 0;
+            valve_hours = 0;
             valve_check();
         }
 
-        if(RTC_Counter < 24)
+        if(rtc_hours < 4)
         {
-            RTC_Counter++;
-            aq_device_heart_increase();
+            rtc_hours++;
         }
         else
         {
-            RTC_Counter=0;
-            aq_device_heart_increase();
+            rtc_hours = 0;
             aq_device_heart_check();
         }
-        LOG_D("RTC alarm,RTC_Counter is %d\r\n",RTC_Counter);
+        gateway_heart_check();
     }
 }
 
@@ -135,6 +132,8 @@ void rtc_init(void)
 
     HAL_NVIC_SetPriority(RTC_Alarm_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(RTC_Alarm_IRQn);
+
+    aq_device_heart_recv_clear();//clear all slave device recv flag to zero
 
     rtc_sem = rt_sem_create("rtc_sem", 0, RT_IPC_FLAG_FIFO);
     rtc_thread = rt_thread_create("rtc_thread", rtc_thread_entry, RT_NULL, 2048, 11, 10);

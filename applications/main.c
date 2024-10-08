@@ -18,7 +18,7 @@
 #include <rtdbg.h>
 
 const uint8_t fw_main_ver = 0x00;
-const uint8_t fw_sub_ver = 0x09;
+const uint8_t fw_sub_ver = 0x0A;
 
 int main(void)
 {

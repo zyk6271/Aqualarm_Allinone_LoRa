@@ -34,6 +34,8 @@ ALIGN(RT_ALIGN_SIZE)
 static rt_slist_t _device_list = RT_SLIST_OBJECT_INIT(_device_list);
 static struct rt_mutex flash_mutex;
 
+extern WariningEvent SlaverOfflineEvent;
+
 int storage_init(void)
 {
     rt_err_t status;
@@ -213,7 +215,6 @@ aqualarm_device_t *aq_device_create(uint8_t rssi_level,uint8_t type,uint32_t dev
     device->ack = 0;
     device->rssi_level = rssi_level;
     device->online = 1;
-    device->heart = 0;
     device->battery = 0;
     device->device_id = device_id;
     device->waterleak = 0;
@@ -288,8 +289,8 @@ void aq_device_print(void)
     {
         aqualarm_device_t *device = rt_slist_entry(node, aqualarm_device_t, slist);
         LOG_I("[device info %d]:addr %d,slot %d,type %d,rssi_level %d,snr %d\r\n",device->slot,device->device_id,device->slot,device->type,device->rssi_level,device->snr);
-        LOG_I("[device status %d]:battery %d,waterleak %d,ack %d,heart %d,online %d\r\n",device->slot,device->battery,\
-                device->waterleak,device->ack,device->heart,device->online);
+        LOG_I("[device status %d]:battery %d,waterleak %d,ack %d,online %d\r\n",device->slot,device->battery,\
+                device->waterleak,device->ack,device->online);
     }
 }
 
@@ -486,6 +487,20 @@ uint8_t aq_device_slaver_count(void)
     return count;
 }
 
+void aq_device_heart_recv_clear(void)
+{
+    rt_slist_t *node;
+    aqualarm_device_t *device = RT_NULL;
+    rt_slist_for_each(node, &_device_list)
+    {
+        device = rt_slist_entry(node, aqualarm_device_t, slist);
+        if(device->type != DEVICE_TYPE_GATEWAY)
+        {
+            device->recv = 0;
+        }
+    }
+}
+
 uint8_t aqualarm_device_heart_recv(rx_format *rx_frame)
 {
     rt_slist_t *node;
@@ -498,7 +513,7 @@ uint8_t aqualarm_device_heart_recv(rx_format *rx_frame)
             device->rssi = rx_frame->rssi;
             device->rssi_level = rx_frame->rssi_level;
             device->snr = rx_frame->snr;
-            device->heart = 0;
+            device->recv = 1;
             aq_device_online_set(rx_frame->source_addr,1);
             return RT_EOK;
         }
@@ -507,31 +522,23 @@ uint8_t aqualarm_device_heart_recv(rx_format *rx_frame)
     return RT_ERROR;
 }
 
-void aq_device_heart_increase(void)
-{
-    rt_slist_t *node;
-    aqualarm_device_t *device = RT_NULL;
-    rt_slist_for_each(node, &_device_list)
-    {
-        device = rt_slist_entry(node, aqualarm_device_t, slist);
-        if(device->type != DEVICE_TYPE_GATEWAY)
-        {
-            device->heart ++;
-        }
-    }
-}
-
 void aq_device_heart_check(void)
 {
-    extern WariningEvent SlaverOfflineEvent;
     rt_slist_t *node;
     aqualarm_device_t *device = RT_NULL;
     rt_slist_for_each(node, &_device_list)
     {
         device = rt_slist_entry(node, aqualarm_device_t, slist);
-        if(device->type != DEVICE_TYPE_GATEWAY && device->heart > 24)
+        if(device->type != DEVICE_TYPE_GATEWAY)//except gateway
         {
-            aq_device_online_set(device->device_id,0);
+            if(device->recv)
+            {
+                device->recv = 0;
+            }
+            else
+            {
+                aq_device_online_set(device->device_id,0);
+            }
         }
     }
     if(aq_device_offline_find())

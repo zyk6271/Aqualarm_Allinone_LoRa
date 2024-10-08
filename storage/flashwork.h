@@ -14,7 +14,7 @@ typedef struct{
     uint8_t online;
     uint8_t ack;
     uint8_t recv;
-    uint8_t heart;
+    uint8_t rsvd;
     uint32_t device_id;
     rt_slist_t slist;
 }aqualarm_device_t;
