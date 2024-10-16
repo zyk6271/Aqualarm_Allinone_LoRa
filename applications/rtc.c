@@ -20,14 +20,12 @@ void rtc_thread_entry(void *parameter)
     {
         rt_sem_take(rtc_sem, RT_WAITING_FOREVER);
         LOG_I("rtc_hours is %d\r\n",rtc_hours);
-
-        if((++ valve_hours) %120 == 0)
+        if((++ valve_hours) % 120 == 0)
         {
             valve_hours = 0;
             valve_check();
         }
-
-        if(rtc_hours < 24)
+        if(rtc_hours < 48)
         {
             rtc_hours++;
         }

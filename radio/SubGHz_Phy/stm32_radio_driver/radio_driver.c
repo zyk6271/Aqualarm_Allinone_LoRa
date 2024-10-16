@@ -1008,13 +1008,17 @@ void SUBGRF_ClearIrqStatus( uint16_t irq )
 
 void SUBGRF_WriteRegister( uint16_t addr, uint8_t data )
 {
+    uint32_t level = CRITICAL_SECTION_BEGIN();
     HAL_SUBGHZ_WriteRegisters( &hsubghz, addr, (uint8_t*)&data, 1 );
+    CRITICAL_SECTION_END(level);
 }
 
 uint8_t SUBGRF_ReadRegister( uint16_t addr )
 {
     uint8_t data;
+    uint32_t level = CRITICAL_SECTION_BEGIN();
     HAL_SUBGHZ_ReadRegisters( &hsubghz, addr, &data, 1 );
+    CRITICAL_SECTION_END(level);
     return data;
 }
 

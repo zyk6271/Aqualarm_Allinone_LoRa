@@ -394,6 +394,24 @@ void aq_device_online_set(uint32_t device_id,uint8_t state)
     }
 }
 
+void aq_device_rssi_level_set(uint32_t device_id,uint8_t rssi_level)
+{
+    rt_slist_t *node;
+    aqualarm_device_t *device = RT_NULL;
+    rt_slist_for_each(node, &_device_list)
+    {
+        device = rt_slist_entry(node, aqualarm_device_t, slist);
+        if(device->device_id == device_id)
+        {
+            if(device->rssi_level != rssi_level)
+            {
+                device->rssi_level = rssi_level;
+                aq_device_save(device);
+            }
+        }
+    }
+}
+
 uint8_t aq_device_offline_find(void)
 {
     rt_slist_t *node;
@@ -510,11 +528,9 @@ uint8_t aqualarm_device_heart_recv(rx_format *rx_frame)
         device = rt_slist_entry(node, aqualarm_device_t, slist);
         if(device->device_id == rx_frame->source_addr)
         {
-            device->rssi = rx_frame->rssi;
-            device->rssi_level = rx_frame->rssi_level;
-            device->snr = rx_frame->snr;
             device->recv = 1;
             aq_device_online_set(rx_frame->source_addr,1);
+            aq_device_rssi_level_set(rx_frame->source_addr,rx_frame->rssi_level);
             return RT_EOK;
         }
     }

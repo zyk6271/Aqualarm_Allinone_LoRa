@@ -28,7 +28,7 @@ void radio_recv_start(void)
                                    0, true, 0, 0, LORA_IQ_INVERSION_ON_DISABLE, true );
 
     Radio.SetMaxPayloadLength(MODEM_LORA, 255);
-    Radio.Rx(0);
+    Radio.Rx(4*60*1000);
 }
 
 void RF_Send(char *payload,int size)
@@ -66,7 +66,7 @@ static void OnRxError(void)
 
 static void OnRxTimeout(void)
 {
-    LOG_W("OnRxTimeout\r\n");
+    LOG_D("OnRxTimeout\r\n");
     radio_recv_start();
 }
 
@@ -100,5 +100,5 @@ void radio_init(void)
                                    LORA_SYMBOL_TIMEOUT, LORA_FIX_LENGTH_PAYLOAD_ON_DISABLE,
                                    0, true, 0, 0, LORA_IQ_INVERSION_ON_DISABLE, true );
     Radio.SetMaxPayloadLength(MODEM_LORA, 255);
-    Radio.Rx(0);
+    Radio.Rx(4*60*1000);
 }
