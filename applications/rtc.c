@@ -25,7 +25,7 @@ void rtc_thread_entry(void *parameter)
             valve_hours = 0;
             valve_check();
         }
-        if(rtc_hours < 48)
+        if(rtc_hours < 47)
         {
             rtc_hours++;
         }
