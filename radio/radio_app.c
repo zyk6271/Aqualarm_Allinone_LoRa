@@ -42,6 +42,7 @@ void RF_Send(char *payload,int size)
 
 static void OnRxDone(uint8_t *src_payload, uint16_t size, int16_t rssi, int8_t snr)
 {
+    radio_recv_start();
     radio_protocol_parse(rssi,snr,src_payload,size);
 }
 
