@@ -21,7 +21,14 @@ RadioEvents_t RadioEvents;
 
 void radio_recv_start(void)
 {
-    Radio.SetChannel( RF_RX_FREQUENCY );
+    if(factory_rssi_test_flag_get())
+    {
+        Radio.SetChannel( RF_FACTORY_RX_FREQUENCY );
+    }
+    else
+    {
+        Radio.SetChannel( RF_RX_FREQUENCY );
+    }
     Radio.SetRxConfig( MODEM_LORA, LORA_BANDWIDTH, LORA_SPREADING_FACTOR,
                                    LORA_CODINGRATE, 0, LORA_PREAMBLE_LENGTH,
                                    LORA_SYMBOL_TIMEOUT, LORA_FIX_LENGTH_PAYLOAD_ON_DISABLE,
@@ -42,6 +49,7 @@ void RF_Send(char *payload,int size)
 
 static void OnRxDone(uint8_t *src_payload, uint16_t size, int16_t rssi, int8_t snr)
 {
+    LOG_D("OnRxDone");
     radio_recv_start();
     radio_protocol_parse(rssi,snr,src_payload,size);
 }

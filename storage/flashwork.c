@@ -412,6 +412,18 @@ void aq_device_rssi_level_set(uint32_t device_id,uint8_t rssi_level)
     }
 }
 
+uint8_t aq_device_need_offline_check(uint8_t type)
+{
+    if(type != DEVICE_TYPE_GATEWAY && type != DEVICE_TYPE_DOORUNIT && type != DEVICE_TYPE_MOTION_SENSOR)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 uint8_t aq_device_offline_find(void)
 {
     rt_slist_t *node;
@@ -419,7 +431,7 @@ uint8_t aq_device_offline_find(void)
     rt_slist_for_each(node, &_device_list)
     {
         device = rt_slist_entry(node, aqualarm_device_t, slist);
-        if(device->online == 0 && device->type != DEVICE_TYPE_GATEWAY  && device->type != DEVICE_TYPE_DOORUNIT)
+        if(device->online == 0 && aq_device_need_offline_check(device->type) == 1)
         {
             return 1;
         }
@@ -430,6 +442,11 @@ uint8_t aq_device_offline_find(void)
 
 uint8_t aq_device_offline_upload(uint8_t *send_buf)
 {
+    if(send_buf == RT_NULL)
+    {
+        return 0;
+    }
+
     rt_slist_t *node;
     aqualarm_device_t *device = RT_NULL;
     uint8_t len = 0;

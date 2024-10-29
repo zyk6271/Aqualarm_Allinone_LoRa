@@ -52,10 +52,32 @@ void rf_txdone_callback(void)
     rt_completion_done(&rf_txdone_sem);
 }
 
+uint32_t rf_rx_frequency_switch(uint8_t freq_type)
+{
+    uint32_t freq = 0;
+    switch(freq_type)
+    {
+    case 0:
+        freq = RF_GATEWAY_TX_FREQUENCY;
+        break;
+    case 1:
+        freq = RF_SLAVER_TX_FREQUENCY;
+        break;
+    case 2:
+        freq = RF_FACTORY_TX_FREQUENCY;
+        break;
+    default:
+        freq = RF_SLAVER_TX_FREQUENCY;
+        break;
+    }
+
+    return freq;
+}
+
 rt_err_t rf_send_with_lbt(uint8_t freq_type,char* data_ptr,uint8_t data_size)
 {
     uint8_t retry_times = 0;
-    uint32_t send_freq = freq_type > 0 ? RF_SLAVER_TX_FREQUENCY : RF_GATEWAY_TX_FREQUENCY;
+    uint32_t send_freq = rf_rx_frequency_switch(freq_type);
     for(retry_times = 0; retry_times < MAX_LBT_RETRY_TIMES; retry_times++)
     {
         if(csma_check_start(send_freq) == RT_EOK)

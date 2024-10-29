@@ -53,6 +53,8 @@ typedef struct
 #define DEVICE_TYPE_DOORUNIT          0x04
 #define DEVICE_TYPE_PWRSTOP           0x05
 #define DEVICE_TYPE_MOTION_SENSOR     0x06
+#define DEVICE_TYPE_FACTORY_TOOL      0x0E
+#define DEVICE_TYPE_EXTENDED_DEVICES  0x0F
 
 #define NETID_TEST_ENV                0x01
 #define NETID_CHN_ENV                 0x02

@@ -29,9 +29,9 @@ struct pd_chip_t
 
 struct pd_chip_t pd_chip[2];
 struct pd_chip_t *factory_chip;
-static uint8_t pd_voltage_lock,pd_voltage_level,pd_current_level = 0;
+static uint8_t factory_rssi_test_flag,pd_voltage_lock,pd_voltage_level,pd_current_level = 0;
 
-rt_timer_t pd_period_read_timer = RT_NULL;
+rt_timer_t pd_factory_read_timer = RT_NULL;
 
 void pd_spi_write_single(struct rt_spi_device *device, uint8_t address, uint8_t data)
 {
@@ -105,37 +105,86 @@ void pd_chip_output_power_set(struct rt_spi_device *device,uint8_t voltage,uint8
     pd_spi_write_multiple(device,0x06,data,2);
 }
 
-void pd_chip_factory_info_set(struct rt_spi_device *device)
+void pd_chip_factory_gpio_set(struct rt_spi_device *device)
 {
-    extern uint8_t antenna_switch_flag;
-
     uint8_t data = 0;
-    data = rt_pin_read(MOTO_CLOSE_STATUS_PIN);
-    data |= rt_pin_read(MOTO_OPEN_STATUS_PIN) << 1;
-    data |= rt_pin_read(SENSOR_LOST_PIN) << 2;
-    data |= rt_pin_read(SENSOR_LEAK_PIN) << 3;
-//    data |= !antenna_switch_flag << 4;
-//    data |= antenna_switch_flag << 5;
-    data |= rt_pin_read(PD_CHIP_IRQ1_PIN) << 6;
-    data |= rt_pin_read(PD_CHIP_IRQ2_PIN) << 7;
+    data = rt_pin_read(PD_CHIP_IRQ2_PIN);
+    data |= rt_pin_read(PD_CHIP_IRQ1_PIN) << 1;
+    data |= rt_pin_read(MOTO_CLOSE_STATUS_PIN) << 2;
+    data |= rt_pin_read(MOTO_OPEN_STATUS_PIN) << 3;
+    data |= rt_pin_read(SENSOR_LOST_PIN) << 4;
+    data |= rt_pin_read(SENSOR_LEAK_PIN) << 5;
+    data |= rt_pin_read(KEY_OFF_PIN) << 6;
+    data |= rt_pin_read(KEY_ON_PIN) << 7;
     pd_spi_write_single(device,0x08,data);
 }
 
-void pd_chip_factory_period_read_callback(void *parameter)
+void pd_chip_factory_info_set(struct rt_spi_device *device)
 {
-    extern uint8_t antenna_switch_flag;
+    uint8_t data = 0;
+
+    extern enum Device_Status DeviceStatus;
+    extern uint8_t valve_status;
+    extern uint8_t internal_valve_open_result;
+    extern uint8_t internal_valve_close_result;
+    extern uint8_t internal_valve_check_result;
+    extern uint8_t external_valve_open_result;
+    extern uint8_t external_valve_close_result;
+    extern uint8_t external_valve_check_result;
+
+    data = DeviceStatus;
+    data |= valve_status << 1;
+    data |= internal_valve_close_result << 2;
+    data |= internal_valve_open_result << 3;
+    data |= internal_valve_check_result << 4;
+    data |= external_valve_close_result << 5;
+    data |= external_valve_open_result << 6;
+    data |= external_valve_check_result << 7;
+    pd_spi_write_single(device,0x09,data);
+}
+
+void pd_chip_self_addr_set(struct rt_spi_device *device)
+{
+    uint8_t data[4] = {0};
+    data[0] = (get_local_address() >> 24) & 0xFF;
+    data[1] = (get_local_address() >> 16) & 0xFF;
+    data[2] = (get_local_address() >> 8) & 0xFF;
+    data[3] = get_local_address() & 0xFF;
+    pd_spi_write_multiple(device,0x0C,data,4);
+}
+
+void pd_chip_rssi_test_set(struct rt_spi_device *device)
+{
+    int8_t data[6] = {0};
+    data[0] = factory_controller_recv_snr_read();
+    data[1] = factory_controller_recv_rssi_read() & 0xFF;
+    data[2] = (factory_controller_recv_rssi_read() >> 8) & 0xFF;
+    data[3] = factory_gateway_recv_snr_read();
+    data[4] = factory_gateway_recv_rssi_read() & 0xFF;
+    data[5] = (factory_gateway_recv_rssi_read() >> 8) & 0xFF;
+    pd_spi_write_multiple(device,0x0B,(uint8_t *)data,6);
+}
+
+void pd_factory_read_timer_callback(void *parameter)
+{
+    uint8_t action_data = 0;
+    static uint8_t time_count = 0;
     static uint8_t simu_water_leak = 0;
     static uint8_t simu_valve_check = 0;
-    static uint8_t simu_ant_switch = 0;
-    uint8_t action_data = 0;
+    static uint8_t simu_open_valve = 0;
+    static uint8_t simu_close_valve = 0;
+    static uint8_t simu_rf_test = 0;
 
     if(factory_chip == RT_NULL)
     {
         return;
     }
 
+    pd_chip_factory_gpio_set(factory_chip->pd_chip_device);
     pd_chip_factory_info_set(factory_chip->pd_chip_device);
-    action_data = pd_spi_read_single(factory_chip->pd_chip_device,0x09);
+    pd_chip_rssi_test_set(factory_chip->pd_chip_device);
+
+    action_data = pd_spi_read_single(factory_chip->pd_chip_device,0x0A);
     if(simu_water_leak != (action_data & 0x01))
     {
         simu_water_leak = action_data & 0x01;
@@ -152,6 +201,39 @@ void pd_chip_factory_period_read_callback(void *parameter)
         {
             valve_check();
         }
+    }
+
+    if(simu_close_valve != (action_data & 0x04))
+    {
+        simu_close_valve = action_data & 0x04;
+        if(simu_close_valve)
+        {
+            valve_close();
+        }
+    }
+
+    if(simu_open_valve != (action_data & 0x08))
+    {
+        simu_open_valve = action_data & 0x08;
+        if(simu_open_valve)
+        {
+            valve_open();
+        }
+    }
+
+    simu_rf_test = (action_data & 0x10);
+    if(simu_rf_test)
+    {
+        factory_rssi_test_flag = 1;
+        if(time_count++ > 1)
+        {
+            time_count = 0;
+            radio_factory_test_packet_send();
+        }
+    }
+    else
+    {
+        factory_rssi_test_flag = 0;
     }
 }
 
@@ -224,6 +306,11 @@ uint8_t pd_chip_lock_voltage_get(void)
     return pd_voltage_level;
 }
 
+uint8_t factory_rssi_test_flag_get(void)
+{
+    return factory_rssi_test_flag;
+}
+
 void pd_chip_plug_in_handshake(struct pd_chip_t *pd)
 {
     pd->pd_type = pd_chip_type_get(pd->pd_chip_device);
@@ -250,12 +337,13 @@ void pd_chip_plug_in_handshake(struct pd_chip_t *pd)
     {
         pd->pd_input = 0;
         pd_valve_control(get_valve_status());
-    }
-
-    if(pd_chip_factory_get(pd->pd_chip_device))
-    {
-        factory_chip = pd;
-        rt_timer_start(pd_period_read_timer);
+        if(pd_chip_factory_get(pd->pd_chip_device) && (rt_tick_get() < 10 * 1000))
+        {
+            factory_chip = pd;
+            led_factory_gw_blink();
+            pd_chip_self_addr_set(factory_chip->pd_chip_device);
+            rt_timer_start(pd_factory_read_timer);
+        }
     }
 }
 
@@ -277,7 +365,12 @@ void pd_chip_plug_in_callback(agile_btn_t *btn)
 
 void pd_chip_plug_out_handshake(struct pd_chip_t *pd)
 {
-
+    if(factory_chip != RT_NULL && pd == factory_chip)
+    {
+        LOG_D("Exit factory test mode,rebooting now");
+        rt_thread_mdelay(1000);
+        rt_hw_cpu_reset();
+    }
 }
 
 void pd_chip_plug_out_callback(agile_btn_t *btn)
@@ -320,7 +413,7 @@ void pd_init(void)
         agile_btn_start(pd_chip[i].pd_chip_irq_btn);
     }
 
-    pd_period_read_timer = rt_timer_create("period", pd_chip_factory_period_read_callback, \
+    pd_factory_read_timer = rt_timer_create("factory_read", pd_factory_read_timer_callback, \
                                                 RT_NULL, 1000, RT_TIMER_FLAG_SOFT_TIMER | RT_TIMER_FLAG_PERIODIC);
     rt_hw_spi_device_attach("spi1", "spi11", GPIOA, GPIO_PIN_1);
     rt_hw_spi_device_attach("spi1", "spi12", GPIOA, GPIO_PIN_2);

@@ -35,6 +35,8 @@
 #define RF_RX_FREQUENCY                             434000000
 #define RF_GATEWAY_TX_FREQUENCY                     433500000
 #define RF_SLAVER_TX_FREQUENCY                      434500000
+#define RF_FACTORY_TX_FREQUENCY                     435500000
+#define RF_FACTORY_RX_FREQUENCY                     436000000
 #define RX_TIMEOUT_VALUE                            0
 #define TX_TIMEOUT_VALUE                            3000
 

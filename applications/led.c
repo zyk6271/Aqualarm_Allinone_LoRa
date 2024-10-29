@@ -267,26 +267,7 @@ void led_ntc_alarm(void)
     led_start(led_obj_on_green);
     led_start(beep_obj);
 }
-void led_factory_warn(void)
-{
-    led_stop(led_obj_on_green);
-    led_set_mode(beep_obj, 1,"200,0,");
-    led_set_mode(led_obj_off_red, 1,"200,0,");
-    led_start(led_obj_off_red);
-    led_start(beep_obj);
-}
-void led_factory_normal(void)
-{
-    led_stop(led_obj_off_red);
-    led_set_mode(beep_obj, 1,"200,0,");
-    led_set_mode(led_obj_on_green, 1,"200,0,");
-    led_set_mode(led_obj_wifi_green_led, 1,"200,0,");
-    led_set_mode(led_obj_wifi_red_led, 1,"200,0,");
-    led_start(beep_obj);
-    led_start(led_obj_on_green);
-    led_start(led_obj_wifi_green_led);
-    led_start(led_obj_wifi_red_led);
-}
+
 void led_valve_on(void)
 {
     led_stop(led_obj_off_red);
@@ -307,6 +288,14 @@ void led_warn_off(void)
 void led_loss_off(void)
 {
     led_stop(led_obj_loss_red);
+}
+
+void led_factory_gw_blink(void)
+{
+    led_set_mode(led_obj_wifi_green_led, LOOP_PERMANENT, "500,500,");
+    led_set_mode(led_obj_wifi_red_led, LOOP_PERMANENT, "0,500,500,");
+    led_start(led_obj_wifi_green_led);
+    led_start(led_obj_wifi_red_led);
 }
 
 int led_init(void)
