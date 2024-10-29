@@ -54,7 +54,7 @@ void rf_txdone_callback(void)
 
 uint32_t rf_rx_frequency_switch(uint8_t freq_type)
 {
-    uint32_t freq = 0;
+    uint32_t freq = RF_SLAVER_TX_FREQUENCY;
     switch(freq_type)
     {
     case 0:
@@ -67,7 +67,6 @@ uint32_t rf_rx_frequency_switch(uint8_t freq_type)
         freq = RF_FACTORY_TX_FREQUENCY;
         break;
     default:
-        freq = RF_SLAVER_TX_FREQUENCY;
         break;
     }
 
