@@ -167,5 +167,5 @@ void radio_motion_command_send(tx_format *tx_frame)
     send_len = set_lora_tx_byte(send_len,tx_frame->tx_len);
     send_len = set_lora_tx_buffer(send_len,tx_frame->tx_data,tx_frame->tx_len);
     send_len = set_lora_tx_crc(send_len);
-    lora_tx_enqueue(get_lora_tx_buf(),send_len,tx_frame->msg_type == MSG_CONFIRMED_UPLINK ? 1 : 0, 2);
+    lora_tx_enqueue(get_lora_tx_buf(),send_len,tx_frame->msg_type == MSG_CONFIRMED_UPLINK ? 1 : 0, 1);
 }
