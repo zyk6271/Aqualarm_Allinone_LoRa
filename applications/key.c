@@ -241,11 +241,6 @@ void water_lost_plugout_callback(agile_btn_t *btn)
 
 void button_init(void)
 {
-    rt_pin_mode(ANT_INT_PIN, PIN_MODE_OUTPUT);
-    rt_pin_mode(ANT_EXT_PIN, PIN_MODE_OUTPUT);
-    rt_pin_write(ANT_INT_PIN, PIN_LOW);
-    rt_pin_write(ANT_EXT_PIN, PIN_HIGH);
-
     key_on_btn = agile_btn_create(KEY_ON_PIN, PIN_LOW, PIN_MODE_INPUT);
     key_off_btn = agile_btn_create(KEY_OFF_PIN, PIN_LOW, PIN_MODE_INPUT);
     water_leak_btn = agile_btn_create(SENSOR_LEAK_PIN, PIN_LOW, PIN_MODE_INPUT);

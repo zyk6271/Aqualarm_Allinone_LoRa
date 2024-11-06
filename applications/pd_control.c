@@ -415,7 +415,7 @@ void pd_init(void)
 
     pd_factory_read_timer = rt_timer_create("factory_read", pd_factory_read_timer_callback, \
                                                 RT_NULL, 1000, RT_TIMER_FLAG_SOFT_TIMER | RT_TIMER_FLAG_PERIODIC);
-    rt_hw_spi_device_attach("spi1", "spi11", GPIOA, GPIO_PIN_1);
+    rt_hw_spi_device_attach("spi1", "spi11", GPIOA, GPIO_PIN_6);
     rt_hw_spi_device_attach("spi1", "spi12", GPIOA, GPIO_PIN_2);
 
     pd_chip[0].pd_chip_device = (struct rt_spi_device *)rt_device_find("spi11");

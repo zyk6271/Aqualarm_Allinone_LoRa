@@ -33,6 +33,9 @@ extern "C" {
   */
 #define XTAL_DEFAULT_CAP_VALUE                  ( 0x20UL )
 
+#define XTA_DEFAULT_CAP_VALUE                  ( 0x06UL )
+#define XTB_DEFAULT_CAP_VALUE                  ( 0x08UL )
+
 /**
   * @brief voltage of vdd tcxo.
   * @note override the default configuration of radio_driver.c

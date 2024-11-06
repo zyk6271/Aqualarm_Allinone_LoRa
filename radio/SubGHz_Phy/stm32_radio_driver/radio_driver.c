@@ -253,8 +253,8 @@ void SUBGRF_Init( DioIrqHandler dioIrq )
     }
     else
     {
-        SUBGRF_WriteRegister( REG_XTA_TRIM, XTAL_DEFAULT_CAP_VALUE );
-        SUBGRF_WriteRegister( REG_XTB_TRIM, XTAL_DEFAULT_CAP_VALUE );
+        SUBGRF_WriteRegister( REG_XTA_TRIM, XTA_DEFAULT_CAP_VALUE );
+        SUBGRF_WriteRegister( REG_XTB_TRIM, XTB_DEFAULT_CAP_VALUE );
     }
     /* Init RF Switch */
     RF_Switch_Init();

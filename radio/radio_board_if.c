@@ -8,8 +8,6 @@ void RF_Switch_Init(void)
     rt_pin_write(RF_SW1_PIN,PIN_LOW);
     rt_pin_mode(RF_SW2_PIN,PIN_MODE_OUTPUT);
     rt_pin_write(RF_SW2_PIN,PIN_LOW);
-    rt_pin_mode(TCXO_PWR_PIN,PIN_MODE_OUTPUT);
-    rt_pin_write(TCXO_PWR_PIN,PIN_HIGH);
 }
 
 int32_t RBI_ConfigRFSwitch(RBI_Switch_TypeDef Config)
@@ -27,20 +25,22 @@ int32_t RBI_ConfigRFSwitch(RBI_Switch_TypeDef Config)
     case RBI_SWITCH_RX:
     {
         /*Turns On in Rx Mode the RF Switch */
-        rt_pin_write(RF_SW1_PIN,PIN_LOW);
-        rt_pin_write(RF_SW2_PIN,PIN_HIGH);
+        rt_pin_write(RF_SW1_PIN,PIN_HIGH);
+        rt_pin_write(RF_SW2_PIN,PIN_LOW);
         break;
     }
     case RBI_SWITCH_RFO_LP:
     {
         /*Turns On in Tx Low Power the RF Switch */
-        rt_pin_write(RF_SW1_PIN,PIN_HIGH);
-        rt_pin_write(RF_SW2_PIN,PIN_LOW);
+//        rt_pin_write(RF_SW1_PIN,PIN_HIGH);
+//        rt_pin_write(RF_SW2_PIN,PIN_LOW);
         break;
     }
     case RBI_SWITCH_RFO_HP:
     {
         /*NO HIGH POWER MODE */
+        rt_pin_write(RF_SW1_PIN,PIN_LOW);
+        rt_pin_write(RF_SW2_PIN,PIN_HIGH);
         break;
     }
     default:
@@ -51,13 +51,13 @@ int32_t RBI_ConfigRFSwitch(RBI_Switch_TypeDef Config)
 
 int32_t RBI_GetTxConfig(void)
 {
-  int32_t retcode = RBI_CONF_RFO_LP;
+  int32_t retcode = RBI_CONF_RFO_HP;
   return retcode;
 }
 
 int32_t RBI_IsTCXO(void)
 {
-  int32_t retcode = RADIO_CONF_TCXO_SUPPORTED;
+  int32_t retcode = RADIO_CONF_TCXO_NOT_SUPPORTED;
   return retcode;
 }
 
