@@ -7,7 +7,7 @@ const RGB_Color_TypeDef BLACK    = {0,0,0};
 
 uint32_t Pixel_Buf[Pixel_NUM + 1][24] = {0};
 
-TIM_HandleTypeDef tim2_handle;
+TIM_HandleTypeDef led_pwm_handle;
 extern DMA_HandleTypeDef hdma_tim2_ch1;
 
 void ws2812b_init(void)
@@ -21,29 +21,25 @@ void ws2812b_init(void)
     HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
     HAL_NVIC_DisableIRQ(DMA1_Channel1_IRQn);
 
-    /* DMA1_Channel2_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 0, 0);
-    HAL_NVIC_DisableIRQ(DMA1_Channel2_IRQn);
-
     TIM_MasterConfigTypeDef sMasterConfig = {0};
     TIM_OC_InitTypeDef sConfigOC = {0};
 
     /* USER CODE BEGIN TIM2_Init 1 */
 
     /* USER CODE END TIM2_Init 1 */
-    tim2_handle.Instance = TIM2;
-    tim2_handle.Init.Prescaler = 0;
-    tim2_handle.Init.CounterMode = TIM_COUNTERMODE_UP;
-    tim2_handle.Init.Period = 59;
-    tim2_handle.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-    tim2_handle.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-    if (HAL_TIM_PWM_Init(&tim2_handle) != HAL_OK)
+    led_pwm_handle.Instance = TIM2;
+    led_pwm_handle.Init.Prescaler = 0;
+    led_pwm_handle.Init.CounterMode = TIM_COUNTERMODE_UP;
+    led_pwm_handle.Init.Period = 59;
+    led_pwm_handle.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    led_pwm_handle.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+    if (HAL_TIM_PWM_Init(&led_pwm_handle) != HAL_OK)
     {
       Error_Handler();
     }
     sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
     sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-    if (HAL_TIMEx_MasterConfigSynchronization(&tim2_handle, &sMasterConfig) != HAL_OK)
+    if (HAL_TIMEx_MasterConfigSynchronization(&led_pwm_handle, &sMasterConfig) != HAL_OK)
     {
       Error_Handler();
     }
@@ -51,14 +47,14 @@ void ws2812b_init(void)
     sConfigOC.Pulse = 0;
     sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
     sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-    if (HAL_TIM_PWM_ConfigChannel(&tim2_handle, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+    if (HAL_TIM_PWM_ConfigChannel(&led_pwm_handle, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
     {
       Error_Handler();
     }
     /* USER CODE BEGIN TIM2_Init 2 */
 
     /* USER CODE END TIM2_Init 2 */
-    HAL_TIM_MspPostInit(&tim2_handle);
+    HAL_TIM_MspPostInit(&led_pwm_handle);
 
     RGB_SetColor(0,BLACK);
     RGB_SetColor(1,BLACK);
@@ -69,7 +65,7 @@ void TIM2_IRQHandler(void)
   /* USER CODE BEGIN TIM2_IRQn 0 */
 
   /* USER CODE END TIM2_IRQn 0 */
-  HAL_TIM_IRQHandler(&tim2_handle);
+  HAL_TIM_IRQHandler(&led_pwm_handle);
   /* USER CODE BEGIN TIM2_IRQn 1 */
 
   /* USER CODE END TIM2_IRQn 1 */
@@ -127,6 +123,6 @@ void RGB_SetColor(uint8_t LedId,RGB_Color_TypeDef Color)
 */
 void RGB_SendArray(void)
 {
-    HAL_TIM_PWM_Stop_DMA(&tim2_handle, TIM_CHANNEL_1);
-    HAL_TIM_PWM_Start_DMA(&tim2_handle, TIM_CHANNEL_1, (uint32_t *)Pixel_Buf,(Pixel_NUM + 1)*24);
+    HAL_TIM_PWM_Stop_DMA(&led_pwm_handle, TIM_CHANNEL_1);
+    HAL_TIM_PWM_Start_DMA(&led_pwm_handle, TIM_CHANNEL_1, (uint32_t *)Pixel_Buf,(Pixel_NUM + 1)*24);
 }

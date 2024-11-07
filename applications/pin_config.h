@@ -15,9 +15,6 @@
  */
 #define RF_SW1_PIN                      6
 #define RF_SW2_PIN                      7
-#define TCXO_PWR_PIN                    16
-#define ANT_INT_PIN                     9
-#define ANT_EXT_PIN                     8
 
 /*
  * SENSOR
