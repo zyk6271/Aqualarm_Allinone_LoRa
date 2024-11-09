@@ -86,7 +86,7 @@ rt_err_t rf_send_with_lbt(uint8_t freq_type,char* data_ptr,uint8_t data_size)
         else
         {
             LOG_E("CSMA check retry at start %d",retry_times);
-            rt_thread_mdelay(400);
+            rt_thread_mdelay(random_second_get(50,80) * 10);//500-800 ms
         }
     }
 
@@ -100,7 +100,7 @@ rt_err_t rf_send_with_lbt(uint8_t freq_type,char* data_ptr,uint8_t data_size)
     {
         rt_completion_init(&rf_txdone_sem);
         RF_Send(data_ptr, data_size);
-        if(rt_completion_wait(&rf_txdone_sem, 1000) == RT_EOK)
+        if(rt_completion_wait(&rf_txdone_sem, 2000) == RT_EOK)
         {
             LOG_D("rf_send_with_lbt send packet success");
             return RT_EOK;
@@ -126,7 +126,7 @@ void rf_encode_entry(void *paramaeter)
                 rt_completion_init(&rf_ack_sem);
                 if(rf_send_with_lbt(msg_ptr.parameter, msg_ptr.data_ptr, msg_ptr.data_size) == RT_EOK)
                 {
-                    if(rt_completion_wait(&rf_ack_sem, 1000) == RT_EOK)
+                    if(rt_completion_wait(&rf_ack_sem, 2000) == RT_EOK)
                     {
                         LOG_D("rf_send_with_lbt ack success");
                         break;
