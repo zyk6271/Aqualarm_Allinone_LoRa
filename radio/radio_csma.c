@@ -52,7 +52,7 @@ rt_err_t csma_check_start(uint32_t send_freq)
     cad_detected = 0;
     Radio.Standby();
     Radio.SetChannel( send_freq );
-    SUBGRF_SetCadParams(LORA_CAD_04_SYMBOL, 23, 10, LORA_CAD_ONLY, 0);
+    SUBGRF_SetCadParams(LORA_CAD_02_SYMBOL, 22, 10, LORA_CAD_ONLY, 0);
     Radio.StartCad();
     rt_thread_mdelay(2 * CSMA_WINDOW_TIME);
 
