@@ -317,7 +317,7 @@ void pd_chip_plug_in_handshake(struct pd_chip_t *pd)
     LOG_D("pd_chip_type_get 0x%02X\r\n",pd->pd_type);
     pd->pd_model = pd_chip_model_get(pd->pd_chip_device);
     LOG_D("pd_chip_model_get 0x%02X\r\n",pd->pd_model);
-    if(pd->pd_type == 0x01)//power
+    if(pd->pd_type == 0x01)//power input
     {
         pd->pd_input = 1;
         if(pd_voltage_lock == 0)//lock pd voltage
@@ -343,6 +343,13 @@ void pd_chip_plug_in_handshake(struct pd_chip_t *pd)
             led_factory_gw_blink();
             pd_chip_self_addr_set(factory_chip->pd_chip_device);
             rt_timer_start(pd_factory_read_timer);
+        }
+    }
+    else if(pd->pd_type == 0x03)//power output
+    {
+        if(pd_voltage_level >= 3)//0:off 1:5V 2:9V 3:12V 4:20V
+        {
+            pd_output_control(pd_voltage_level,pd_current_level);
         }
     }
 }

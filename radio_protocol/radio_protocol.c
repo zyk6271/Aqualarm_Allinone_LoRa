@@ -27,7 +27,7 @@ void radio_protocol_parse(int rssi,int snr,uint8_t* data,size_t len)
       return;
     }
 
-    if (data[1] >> 4 != NETID_TEST_ENV) {
+    if (data[1] >> 4 != NET_REGION_SELECT) {
       // Log error: Network ID mismatch
       return;
     }

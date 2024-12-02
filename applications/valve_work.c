@@ -225,12 +225,15 @@ void valve_detect_timer_callback(void *parameter)
 
 void valve_open_once_timer_callback(void *parameter)
 {
-    valve_open();
+    if(DeviceStatus == ValveClose || DeviceStatus == ValveOpen || DeviceStatus == MasterSensorLost)
+    {
+        valve_open();
+    }
 }
 
 void delay_close_timer_callback(void *parameter)
 {
-    if(DeviceStatus == ValveClose || DeviceStatus == ValveOpen)
+    if(DeviceStatus == ValveClose || DeviceStatus == ValveOpen || DeviceStatus == MasterSensorLost)
     {
         valve_lock();
         valve_close();
