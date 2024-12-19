@@ -536,7 +536,7 @@ void aq_device_heart_recv_clear(void)
     }
 }
 
-uint8_t aqualarm_device_heart_recv(rx_format *rx_frame)
+uint8_t aq_device_heart_recv(rx_format *rx_frame)
 {
     rt_slist_t *node;
     aqualarm_device_t *device = RT_NULL;

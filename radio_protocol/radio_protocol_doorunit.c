@@ -179,7 +179,7 @@ void radio_frame_doorunit_parse(rx_format *rx_frame)
         break;
     }
 
-    aqualarm_device_heart_recv(rx_frame);
+    aq_device_heart_recv(rx_frame);
 }
 
 void radio_doorunit_command_send(tx_format *tx_frame)

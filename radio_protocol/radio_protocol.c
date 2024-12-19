@@ -52,15 +52,15 @@ void radio_protocol_parse(int rssi,int snr,uint8_t* data,size_t len)
     rx_frame.dest_addr = (data[3] << 24) | (data[4] << 16) | (data[5] << 8) | data[6];
     rx_frame.source_addr = (data[7] << 24) | (data[8] << 16) | (data[9] << 8) | data[10];
     rx_frame.rssi = rssi;
-    if(rssi < -94)
+    if(rssi < -89)
     {
         rx_frame.rssi_level = 0;
     }
-    else if(rssi >= -94 && rssi < -75)
+    else if(rssi >= -89 && rssi < -78)
     {
         rx_frame.rssi_level = 1;
     }
-    else if(rssi >= -75)
+    else if(rssi >= -78)
     {
         rx_frame.rssi_level = 2;
     }

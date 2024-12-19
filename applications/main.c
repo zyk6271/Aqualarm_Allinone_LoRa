@@ -17,8 +17,8 @@
 #define DBG_LVL DBG_LOG
 #include <rtdbg.h>
 
-const uint8_t fw_main_ver = 0x00;
-const uint8_t fw_sub_ver = 0x0F;
+const uint8_t fw_main_ver = 0x01;
+const uint8_t fw_sub_ver = 0x00;
 
 int main(void)
 {

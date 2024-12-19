@@ -150,7 +150,7 @@ void radio_frame_motion_parse(rx_format *rx_frame)
     default:
         break;
     }
-    aqualarm_device_heart_recv(rx_frame);
+    aq_device_heart_recv(rx_frame);
 }
 
 //transmit

@@ -14,7 +14,7 @@
  * LoRa Config
  */
 #define TX_RX_FREQUENCE_OFFSET                      0            // 0
-#define LORA_TX_OUTPUT_POWER                        10          //14dBm
+#define LORA_TX_OUTPUT_POWER                        12          //12dBm
 
 #define LORA_BANDWIDTH                              0         // [0: 125 kHz,
                                                               //  1: 250 kHz,

@@ -226,7 +226,7 @@ void radio_frame_endunit_parse(rx_format *rx_frame)
         break;
     }
 
-    aqualarm_device_heart_recv(rx_frame);
+    aq_device_heart_recv(rx_frame);
     warning_offline_check();
 }
 
