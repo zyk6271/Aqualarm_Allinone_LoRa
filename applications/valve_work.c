@@ -241,7 +241,7 @@ void delay_close_timer_callback(void *parameter)
     }
 }
 
-void valva_check_timer_callback(void *parameter)
+void valve_check_timer_callback(void *parameter)
 {
     switch(valve_check_tick++)
     {
@@ -340,7 +340,7 @@ void valve_init(void)
     valve_close_timer = rt_timer_create("valve_close", valve_close_timer_callback, RT_NULL, 30000, RT_TIMER_FLAG_ONE_SHOT|RT_TIMER_FLAG_SOFT_TIMER);
     valve_detect_timer  = rt_timer_create("valve_detect", valve_detect_timer_callback, RT_NULL, 60*1000*5, RT_TIMER_FLAG_ONE_SHOT|RT_TIMER_FLAG_SOFT_TIMER);
     valve_open_once_timer = rt_timer_create("valve_open_once", valve_open_once_timer_callback, RT_NULL, 2*1000, RT_TIMER_FLAG_ONE_SHOT|RT_TIMER_FLAG_SOFT_TIMER);
-    valve_check_timer = rt_timer_create("valve_check_tick", valva_check_timer_callback, RT_NULL, 1000, RT_TIMER_FLAG_PERIODIC|RT_TIMER_FLAG_SOFT_TIMER);
+    valve_check_timer = rt_timer_create("valve_check_tick", valve_check_timer_callback, RT_NULL, 1000, RT_TIMER_FLAG_PERIODIC|RT_TIMER_FLAG_SOFT_TIMER);
     delay_close_timer = rt_timer_create("delay_close_timer", delay_close_timer_callback, RT_NULL, 4*60*60*1000, RT_TIMER_FLAG_ONE_SHOT|RT_TIMER_FLAG_SOFT_TIMER);
 
     if(aq_device_waterleak_find())
