@@ -199,7 +199,7 @@ void pd_factory_read_timer_callback(void *parameter)
         simu_valve_check = action_data & 0x02;
         if(simu_valve_check)
         {
-            valve_check();
+            valve_check_start();
         }
     }
 

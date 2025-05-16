@@ -199,7 +199,7 @@ void radio_gateway_command_send(tx_format *tx_frame)
     unsigned short send_len = 0;
     send_len = set_lora_tx_byte(send_len,0xEF);
     send_len = set_lora_tx_byte(send_len,(NET_REGION_SELECT << 4) | NETWORK_VERSION);
-    send_len = set_lora_tx_byte(send_len,(tx_frame->msg_ack << 7) | (DEVICE_TYPE_ALLINONE << 3) | tx_frame->msg_type);
+    send_len = set_lora_tx_byte(send_len,(tx_frame->msg_ack << 7) | (DEVICE_TYPE_SELECT << 3) | tx_frame->msg_type);
     send_len = set_lora_tx_word(send_len,tx_frame->dest_addr);
     send_len = set_lora_tx_word(send_len,tx_frame->source_addr);
     send_len = set_lora_tx_byte(send_len,tx_frame->command);

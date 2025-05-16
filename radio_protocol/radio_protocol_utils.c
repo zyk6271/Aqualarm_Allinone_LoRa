@@ -18,7 +18,7 @@ CRC_HandleTypeDef crc_handle;
 
 volatile unsigned char lora_tx_buf[255];         //LoRa发送缓存
 
-void RadioCRC_Init(void)
+void radio_crc_init(void)
 {
     crc_handle.Instance = CRC;
     crc_handle.Init.DefaultPolynomialUse = DEFAULT_POLYNOMIAL_DISABLE;

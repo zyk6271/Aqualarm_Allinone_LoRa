@@ -195,7 +195,7 @@ void warning_offline_check(void)
 {
     if(DeviceStatus == SlaverOffline)
     {
-        if(aq_device_offline_find() == 0)
+        if(aq_device_endunit_offline_find() == 0)
         {
             warning_all_clear();
         }

@@ -87,8 +87,9 @@ static void OnCadDone(bool channelActivityDetected)
 
 void radio_init(void)
 {
-    RadioCRC_Init();
-    RadioQueue_Init();
+    radio_crc_init();
+    radio_protocol_print();
+    radio_encode_queue_init();
 
     RadioEvents.TxDone = OnTxDone;
     RadioEvents.RxDone = OnRxDone;

@@ -60,5 +60,6 @@ typedef struct
 #define NETID_REGION_SWEDEN           0x02
 
 #define NET_REGION_SELECT             NETID_REGION_NORWAY
+#define DEVICE_TYPE_SELECT            DEVICE_TYPE_ALLINONE
 
 #endif /* RADIO_PROTOCOL_RADIO_PROTOCOL_H_ */

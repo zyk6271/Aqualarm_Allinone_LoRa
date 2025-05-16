@@ -143,7 +143,7 @@ uint8_t get_valve_status(void)
     return valve_status;
 }
 
-void valve_check(void)
+void valve_check_start(void)
 {
     valve_check_tick = 0;
     rt_timer_stop(valve_open_timer);
@@ -220,7 +220,7 @@ void valve_close_timer_callback(void *parameter)
 
 void valve_detect_timer_callback(void *parameter)
 {
-    valve_check();
+    valve_check_start();
 }
 
 void valve_open_once_timer_callback(void *parameter)
@@ -248,7 +248,7 @@ void valve_check_timer_callback(void *parameter)
     case 0://start turn
         if(valve_status == VALVE_STATUS_OPEN)
         {
-            valve_turn_control(1);
+            rt_pin_write(MOTO_CONTROL_PIN,PIN_HIGH);
             pd_valve_check();
         }
         else
@@ -259,7 +259,7 @@ void valve_check_timer_callback(void *parameter)
     case 15://check start and turn back
         if(rt_pin_read(MOTO_OPEN_STATUS_PIN) == 0)
         {
-            valve_turn_control(-1);
+            rt_pin_write(MOTO_CONTROL_PIN,PIN_LOW);
         }
         else
         {
@@ -272,7 +272,7 @@ void valve_check_timer_callback(void *parameter)
     case 20://check back and turn forward
         if(rt_pin_read(MOTO_OPEN_STATUS_PIN) == 1)
         {
-            valve_turn_control(1);
+            rt_pin_write(MOTO_CONTROL_PIN,PIN_HIGH);
         }
         else
         {
@@ -280,6 +280,7 @@ void valve_check_timer_callback(void *parameter)
             internal_valve_check_result = 1;
             rt_timer_stop(valve_check_timer);
             warning_enable(InternalValveFailEvent);
+            rt_pin_write(MOTO_CONTROL_PIN,PIN_HIGH);
         }
         break;
     case 28://check forward

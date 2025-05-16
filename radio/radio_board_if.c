@@ -72,7 +72,7 @@ int32_t RBI_GetRFOMaxPowerConfig(RBI_RFOMaxPowerConfig_TypeDef Config)
     int32_t ret = 0;
     if(Config == RBI_RFO_LP_MAXPOWER)
     {
-        ret = RADIO_CONF_RFO_LP_MAX_15_dBm;
+        ret = RADIO_CONF_RFO_LP_MAX_14_dBm;
     }
     else
     {

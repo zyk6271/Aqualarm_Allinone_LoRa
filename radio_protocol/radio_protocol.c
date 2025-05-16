@@ -14,6 +14,12 @@
 #define DBG_LVL DBG_LOG
 #include <rtdbg.h>
 
+void radio_protocol_print(void)
+{
+    LOG_I("NETWORK_VERSION:%d,DEVICE_TYPE_SELECT:%d,NET_REGION_SELECT:%d",\
+                NETWORK_VERSION,DEVICE_TYPE_SELECT,NET_REGION_SELECT);
+}
+
 void radio_protocol_parse(int rssi,int snr,uint8_t* data,size_t len)
 {
     rx_format rx_frame;

@@ -16,6 +16,7 @@ static uint8_t valve_hours,rtc_hours = 0;
 
 void rtc_thread_entry(void *parameter)
 {
+    aq_device_heart_recv_clear();//clear all slave device recv flag to zero
     while(1)
     {
         rt_sem_take(rtc_sem, RT_WAITING_FOREVER);
@@ -23,7 +24,7 @@ void rtc_thread_entry(void *parameter)
         if((++ valve_hours) % 120 == 0)
         {
             valve_hours = 0;
-            valve_check();
+            valve_check_start();
         }
         if(rtc_hours < 47)
         {
@@ -130,8 +131,6 @@ void rtc_init(void)
 
     HAL_NVIC_SetPriority(RTC_Alarm_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(RTC_Alarm_IRQn);
-
-    aq_device_heart_recv_clear();//clear all slave device recv flag to zero
 
     rtc_sem = rt_sem_create("rtc_sem", 0, RT_IPC_FLAG_FIFO);
     rtc_thread = rt_thread_create("rtc_thread", rtc_thread_entry, RT_NULL, 2048, 11, 10);
