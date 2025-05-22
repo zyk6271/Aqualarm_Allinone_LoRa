@@ -80,10 +80,7 @@ void heart_thread_entry(void *parameter)
     {
         wifi_led(0);
         rt_thread_mdelay(random_second_get(20,40) * 500);//10-20秒
-        if(aq_device_recv_find(aq_gateway_find()) == 0)
-        {
-            gateway_connect_start();
-        }
+        gateway_connect_start();
     }
     while (1)
     {
