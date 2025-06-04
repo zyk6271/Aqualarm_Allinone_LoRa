@@ -1,0 +1,53 @@
+name: Build RT-Thread Project HEX
+
+on:
+  push:
+    branches: [ main ]  # 触发分支，根据你的实际分支名修改
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # 使用 Linux 环境
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive  # 如果工程包含子模块需要递归克隆
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'  # RT-Thread SCons 需要 Python 3.x
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y scons  # 安装 SCons 构建工具
+        sudo apt-get install -y gcc-arm-none-eabi  # 安装 ARM 工具链（根据你的目标芯片调整）
+
+    - name: Find project directory
+      id: find_project
+      run: |
+        # 自动查找包含 .project 文件的 RT-Thread Studio 工程目录
+        PROJECT_DIR=$(find . -name '.project' -printf '%h\n' | head -1)
+        echo "project_dir=$PROJECT_DIR" >> $GITHUB_OUTPUT
+        echo "Found project at: $PROJECT_DIR"
+
+    - name: Build with SCons
+      working-directory: ${{ steps.find_project.outputs.project_dir }}
+      run: |
+        # 使用 SCons 构建并生成 HEX 文件
+        scons --target=iar  # 生成 IAR 格式 HEX（通用格式）
+        # 或使用：scons --target=mdk  # 生成 Keil 格式 HEX
+
+        # 检查是否生成成功
+        if [ ! -f "build/*.hex" ]; then
+          echo "Error: HEX file not found!"
+          exit 1
+        fi
+
+    - name: Upload HEX artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: firmware-hex
+        path: ${{ steps.find_project.outputs.project_dir }}/build/*.hex
