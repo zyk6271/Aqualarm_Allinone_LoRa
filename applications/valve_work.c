@@ -154,8 +154,8 @@ void valve_check_start(void)
 
 void valve_open_timer_callback(void *parameter)
 {
-    uint8_t internal_valve_open_status = rt_pin_read(MOTO_OPEN_STATUS_PIN);
-    uint8_t external_valve_open_status = pd_valve_error_open();
+    int internal_valve_open_status = rt_pin_read(MOTO_OPEN_STATUS_PIN);
+    int external_valve_open_status = pd_valve_error_open();
 
     if(internal_valve_open_status == 0)
     {
@@ -177,7 +177,7 @@ void valve_open_timer_callback(void *parameter)
         external_valve_open_result = 0;
         LOG_D("valve_open_timer_callback external_valve_check success\r\n");
     }
-    else
+    else if(external_valve_open_status > 0)
     {
         external_valve_open_result = 1;
         gateway_warning_master_valve_check(4);
@@ -187,8 +187,8 @@ void valve_open_timer_callback(void *parameter)
 
 void valve_close_timer_callback(void *parameter)
 {
-    uint8_t internal_valve_close_status = rt_pin_read(MOTO_CLOSE_STATUS_PIN);
-    uint8_t external_valve_close_status = pd_valve_error_close();
+    int internal_valve_close_status = rt_pin_read(MOTO_CLOSE_STATUS_PIN);
+    int external_valve_close_status = pd_valve_error_close();
 
     if(internal_valve_close_status == 0)
     {
@@ -210,7 +210,7 @@ void valve_close_timer_callback(void *parameter)
         external_valve_close_result = 0;
         LOG_D("valve_close_timer_callback external_valve_check success\r\n");
     }
-    else
+    else if(external_valve_close_status > 0)
     {
         external_valve_close_result = 1;
         gateway_warning_master_valve_check(4);
@@ -306,7 +306,7 @@ void valve_check_timer_callback(void *parameter)
             external_valve_check_result = 0;
             gateway_warning_master_valve_check(2);
         }
-        else
+        else if(pd_valve_error_check() > 0)
         {
             external_valve_check_result = 1;
             gateway_warning_master_valve_check(4);

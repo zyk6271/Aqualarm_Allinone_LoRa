@@ -259,42 +259,42 @@ void pd_valve_check(void)
     }
 }
 
-uint8_t pd_valve_error_close(void)
+int pd_valve_error_close(void)
 {
-    uint8_t error = 0;
+    int error = -1;
     for(uint8_t i = 0; i < 2; i++)
     {
         if(pd_chip[i].pd_type == 0x02)
         {
-            error |= pd_spi_read_single(pd_chip[i].pd_chip_device,0x04) & 0x01;
+            error = pd_spi_read_single(pd_chip[i].pd_chip_device,0x04) & 0x01;
         }
     }
 
     return error;
 }
 
-uint8_t pd_valve_error_open(void)
+int pd_valve_error_open(void)
 {
-    uint8_t error = 0;
+    int error = -1;
     for(uint8_t i = 0; i < 2; i++)
     {
         if(pd_chip[i].pd_type == 0x02)
         {
-            error |= pd_spi_read_single(pd_chip[i].pd_chip_device,0x04) & 0x02;
+            error = pd_spi_read_single(pd_chip[i].pd_chip_device,0x04) & 0x02;
         }
     }
 
     return error;
 }
 
-uint8_t pd_valve_error_check(void)
+int pd_valve_error_check(void)
 {
-    uint8_t error = 0;
+    int error = -1;
     for(uint8_t i = 0; i < 2; i++)
     {
         if(pd_chip[i].pd_type == 0x02)
         {
-            error |= pd_spi_read_single(pd_chip[i].pd_chip_device,0x04) & 0x04;
+            error = pd_spi_read_single(pd_chip[i].pd_chip_device,0x04) & 0x04;
         }
     }
 
