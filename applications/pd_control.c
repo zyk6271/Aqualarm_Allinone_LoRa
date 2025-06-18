@@ -372,11 +372,20 @@ void pd_chip_plug_in_callback(agile_btn_t *btn)
 
 void pd_chip_plug_out_handshake(struct pd_chip_t *pd)
 {
-    if(factory_chip != RT_NULL && pd == factory_chip)
+    if(factory_chip != RT_NULL)
     {
-        LOG_D("Exit factory test mode,rebooting now");
-        rt_thread_mdelay(1000);
-        rt_hw_cpu_reset();
+        if(pd == factory_chip)
+        {
+            LOG_D("Exit factory test mode,rebooting now");
+            rt_thread_mdelay(1000);
+            rt_hw_cpu_reset();
+        }
+    }
+    else
+    {
+        pd->pd_input = 0;
+        pd->pd_model = 0;
+        pd->pd_type = 0;
     }
 }
 
